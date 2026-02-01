@@ -36,7 +36,7 @@ LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* Moved to ../drivers */
 #include "midi1_serial.h"
-#include "midi1_clock_counter.h"
+#include "midi1_clock_cntr.h"
 
 /* Some helpers to print out the note name */
 #include "note.h"
@@ -360,7 +360,7 @@ int main(void)
 	/*
 	 * MIDI clock driver
 	 */
-	const struct device *clk = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_counter));
+	const struct device *clk = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_cntr));
 	if (!device_is_ready(clk)) {
 		LOG_INF("MIDI1 clock counter device not ready");
 		return 0;
@@ -369,7 +369,6 @@ int main(void)
 	/* You can either use the pointer to the API or the public interface */
 	const struct midi1_clock_cntr_api *mid_clk = clk->api;
 	mid_clk->gen_sbpm(clk, 12345);
-	//mid_clk->start(clk);
 	
 	while (1) {
 		/* Running status is used < 300 ms */

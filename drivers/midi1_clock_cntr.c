@@ -12,7 +12,7 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/counter.h>
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(midi1_clock_counter, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(midi1_clock_cntr, CONFIG_LOG_DEFAULT_LEVEL);
 
 #if MIDI_USB_CONFIGURED
 /* This is part of the MIDI2 library prj.conf
@@ -37,7 +37,7 @@ LOG_MODULE_REGISTER(midi1_clock_counter, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* MIDI helpers by J-W Smaal*/
 #include "midi1.h"
-#include "midi1_clock_counter.h"
+#include "midi1_clock_cntr.h"
 
 
 #if LEGACY_CODE_BEING_PORTED
@@ -94,7 +94,7 @@ static void midi1_cntr_handler(const struct device *actual_counter_dev,
 	}
 	if (cfg->midi1_serial_dev) {
 		// Call something maybe to this in a callback instead?
-		LOG_INF("Sending MIDI1 serial clock");
+		// LOG_INF("Sending MIDI1 serial clock");
 	}
 	return;
 }
@@ -286,7 +286,7 @@ uint16_t midi1_clock_cntr_get_sbpm(const struct device *dev)
 }
 
 /* Zephyr device driver API link to our actual implementation */
-static const struct midi1_clock_cntr_api midi1_clock_counter_driver_api = {
+static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
 	.cpu_frequency = midi1_clock_cntr_cpu_frequency,
 	.start         = midi1_clock_cntr_start,
 	.ticks_start   = midi1_clock_cntr_ticks_start,
@@ -297,9 +297,12 @@ static const struct midi1_clock_cntr_api midi1_clock_counter_driver_api = {
 	.get_sbpm      = midi1_clock_cntr_get_sbpm,
 };
 
-#define DT_DRV_COMPAT midi1_clock_counter
+#define MIDI1_CLOCK_CNTR_INIT_PRIORITY 80
 
-#define MIDI1_CLOCK_COUNTER_DEFINE(inst)                                      \
+
+#define DT_DRV_COMPAT midi1_clock_cntr
+
+#define MIDI1_CLOCK_CNTR_DEFINE(inst)                                         \
 static struct midi1_clock_cntr_data midi1_clock_cntr_data_##inst;             \
 static const struct midi1_clock_cntr_config midi1_clock_cntr_config_##inst = {\
 .counter_dev = DEVICE_DT_GET(DT_INST_PROP(inst, counter)),                    \
@@ -309,11 +312,11 @@ DEVICE_DT_INST_DEFINE(inst,                                                   \
 midi1_clock_cntr_init,                                                        \
 NULL,                                                                         \
 &midi1_clock_cntr_data_##inst,                                                \
-&midi1_clock_cntr_config_##inst,                                                  \
+&midi1_clock_cntr_config_##inst,                                              \
 POST_KERNEL,                                                                  \
-CONFIG_KERNEL_INIT_PRIORITY_DEVICE,                                           \
-&midi1_clock_counter_driver_api);
+MIDI1_CLOCK_CNTR_INIT_PRIORITY,                                               \
+&midi1_clock_cntr_driver_api);
 
-DT_INST_FOREACH_STATUS_OKAY(MIDI1_CLOCK_COUNTER_DEFINE)
+DT_INST_FOREACH_STATUS_OKAY(MIDI1_CLOCK_CNTR_DEFINE)
 
 /* EOF */

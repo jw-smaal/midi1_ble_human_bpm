@@ -1,5 +1,5 @@
-#ifndef MIDI1_CLOCK_COUNTER
-#define MIDI1_CLOCK_COUNTER
+#ifndef MIDI1_CLOCK_CNTR
+#define MIDI1_CLOCK_CNTR
 /**
  * @file midi1_clock_counter.h
  * @brief MIDI1.0 clock driver for zephyr RTOS using hardware clock timer.
@@ -15,10 +15,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* Move to device tree */
-#ifndef COUNTER_DEVICE
-#define COUNTER_DEVICE counterch0
-#endif
 
 struct midi1_clock_cntr_config {
 	/* TODO handle these assignments also see data */

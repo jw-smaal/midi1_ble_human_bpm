@@ -32,7 +32,7 @@ config MIDI1_SERIAL_ISR_MSGQ_SIZE_MS
 endmenu
 
 menu "MIDI1 clock counter driver"
-config MIDI1_CLOCK_COUNTER
+config MIDI1_CLOCK_CNTR
     bool "MIDI1 clock counter driver"
     default y
     help

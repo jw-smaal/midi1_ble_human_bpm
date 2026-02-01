@@ -1,5 +1,5 @@
 description: MIDI1 clock system
-compatible: "midi1_clock_counter"
+compatible: "midi1_clock_cntr"
 
 properties:
   counter:
