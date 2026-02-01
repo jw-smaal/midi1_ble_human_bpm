@@ -80,7 +80,7 @@ static uint8_t notify_func(struct bt_conn *conn,
 	return BT_GATT_ITER_CONTINUE;
 }
 
-static uint8_t notify_func2(struct bt_conn *conn,
+[[maybe_unused]] static uint8_t notify_func2(struct bt_conn *conn,
 			   struct bt_gatt_subscribe_params *params,
 			   const void *data, uint16_t length)
 {

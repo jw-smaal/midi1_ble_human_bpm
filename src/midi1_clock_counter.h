@@ -2,18 +2,20 @@
 #define MIDI1_CLOCK_COUNTER
 /**
  * @file midi1_clock_counter.h
- * @brief MIDI1.0 clock for zephyr RTOS using hardware clock timer.
- * pit0_channel0
+ * @brief MIDI1.0 clock driver for zephyr RTOS using hardware clock timer.
+ * NXP pit0_channel0, ctimer lptimer or anything that supports the Zephyr
+ * counter API.
  *
  * @author Jan-Willem Smaal <usenet@gispen.org>
  * @date 20251214
  * license SPDX-License-Identifier: Apache-2.0
  */
-#include <zephyr/kernel.h>      /* k_timer */
-#include <zephyr/sys/atomic.h>  /* atomic_t, atomic_get/set */
-#include <stdint.h>             /* uint32_t, uint16_t */
-#include <stddef.h>             /* NULL */
+#include <zephyr/kernel.h>
+#include <zephyr/sys/atomic.h>
+#include <stdint.h>
+#include <stddef.h>
 
+/* Move to device tree */
 #ifndef COUNTER_DEVICE
 #define COUNTER_DEVICE counterch0
 #endif
@@ -117,5 +119,5 @@ void midi1_clock_cntr_gen_sbpm(const struct device *dev, uint16_t sbpm);
  */
 uint16_t midi1_clock_cntr_get_sbpm(const struct device *dev);
 
-#endif /* MIDI1_CLOCK_TIMER */
+#endif /* MIDI1_CLOCK_COUNTER */
 /* EOF */

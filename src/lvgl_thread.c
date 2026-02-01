@@ -52,7 +52,7 @@ void ui_set_led_level(uint8_t value)
 }
 
 
-static void initialize_gui2(void)
+[[maybe_unused]] static void initialize_gui2(void)
 {
 	/* Screen background (solid black, no transparency) */
 	lv_obj_set_style_bg_color(lv_screen_active(),
@@ -183,7 +183,7 @@ static void ui_set_bar(const struct midi1_raw mid_raw)
 	lv_bar_set_value(level_bar, v, LV_ANIM_OFF);
 }
 
-static void ui_set_line(const char *msg)
+[[maybe_unused]] static void ui_set_line(const char *msg)
 {
 	if (!label_title) {
 		return;
@@ -196,7 +196,7 @@ static void ui_set_line(const char *msg)
 
 #define MAX_MIDI_LINES 9
 static int midi_line_count = 0;
-static void ui_add_line2(const char *msg) {
+[[maybe_unused]] static void ui_add_line2(const char *msg) {
 	if (!ta_midi) {
 		return;
 	}
