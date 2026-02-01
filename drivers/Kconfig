@@ -1,0 +1,32 @@
+menu "MIDI1 serial UART" 
+config MIDI1_SERIAL
+    bool "MIDI1 UART driver"
+    default y
+    help
+      Enable the MIDI1 serial driver.
+      
+config MIDI1_SERIAL_RUNNING_STATUS_REPEAT
+    int "After how many times without a status byte do we send a new one"
+    default 16
+    range 0 64
+    help
+      The default 16 is recommended by the MIDI1.0 spec.  If you set this
+      to 0 the status byte is always sent.
+
+config MIDI1_SERIAL_RUNNING_STATUS_TIMEOUT_MS
+    int "Running status timeout (ms)"
+    default 300
+    range 50 300
+    help
+      If no status byte has been sent within this timeout, the driver will
+      automatically send a new status byte.
+
+config MIDI1_SERIAL_ISR_MSGQ_SIZE_MS
+    int "Size of the rx message queue"
+    default 128
+    range 8 512
+    help
+      Size of the MSGQ keep this one as small as possible to avoid queueing 
+      latency.
+
+endmenu

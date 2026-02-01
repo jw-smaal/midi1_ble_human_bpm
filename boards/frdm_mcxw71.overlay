@@ -1,0 +1,94 @@
+/*
+ * @brief FRDM-MCXW71 board configuration for the MIDI1.0 demo
+ * @note
+ *
+ * @author Jan-Willem Smaal
+ * @date 20250101
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/*
+ * Classic MIDI1.0 over DIN5 plug.
+ * note on the FRDM-MCXC242 the LPUART0 is shared with the MCU_LINK.
+ * so be aware!   If you send printk's you need to set the baud rate
+ * to 31250 from the default 115200 to see something usefull
+ *
+ * Also note anything you send out to the MCU_LINK will end up on the MIDI
+ * port!
+ *
+ */
+&lpuart0 {
+	status = "okay";
+	/* Set it to the MIDI baud rate */
+	current-speed = <31250>;
+};
+
+/* This one is on the MIKRObus and is not shared with the MCU_LINK. */
+&lpuart1 {
+	status = "okay";
+	/* Set it to the MIDI baud rate */
+	current-speed = <31250>;
+};
+
+/*
+ * This is the I2C module connected via the MIKRO bus 
+ */
+&lpi2c1 {
+ 	status = "okay";
+	pinctrl-0 = <&pinmux_lpi2c1>;
+	pinctrl-names = "default";
+	clock-frequency = <I2C_BITRATE_FAST_PLUS>;
+	/* 	clock-frequency = <I2C_BITRATE_FAST>; */
+
+	sh1122: sh1122@3c {
+		status = "okay";
+		compatible = "sinowealth,sh1122";
+		reg = <0x3c>;
+		start-line = <0>;
+		label = "SH1122";
+		width = <256>;
+		height = <64>;
+		display-offset = <0>;
+		multiplex-ratio = <63>;
+		oscillator-freq = <0x90>;
+		start-line = <0>;
+		phase-length = <0x31>;
+		vcomh-voltage = <0x28>;
+		precharge-voltage = <0x22>;
+		dc-dc = <1>;
+		low-voltage = <0x0>;
+	};
+};
+
+/* Overlay enabling LPIT0 channel 0 */
+/*
+&lpit0 {
+    status = "okay";
+
+    lpit1_channel0: lpit_channel@0 {
+        status = "okay";
+    };
+};
+*/
+
+
+/ {
+	aliases {
+		i2c0 = &lpi2c1;
+	};
+	midi0: midi0 {
+		status = "okay";
+		compatible = "midi1_serial";
+		uart = <&lpuart0>;
+	};
+	midi1: midi1 {
+		status = "okay";
+		compatible = "midi1_serial";
+		uart = <&lpuart1>;
+	};
+	chosen {
+                zephyr,display = &sh1122; 
+        };
+};
+
+

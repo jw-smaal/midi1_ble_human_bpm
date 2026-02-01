@@ -1,0 +1,9 @@
+description: MIDI1 UART-based MIDI driver
+compatible: "midi1_serial"
+
+properties:
+  uart:
+    type: phandle
+    required: true
+    description: UART device used for MIDI I/O
+
