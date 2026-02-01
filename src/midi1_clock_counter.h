@@ -19,14 +19,24 @@
 #endif
 
 struct midi1_clock_cntr_config {
+	/* TODO handle these assignments also see data */
 	const struct device *counter_dev;
+	const struct device *usb_midi_dev;
+	const struct device *midi1_serial_dev;
 };
 
 struct midi1_clock_cntr_data {
-	atomic_t running_cntr;
+	uint32_t interval_us;
+	bool running_cntr;
 	uint16_t sbpm;
 	bool count_up_clk;
-	/* TODO: Add a callback for the clock 0xF8 transmitter */
+	/*
+	 * remove me afterwards --> I want to move this to the overlay
+	 * so they get assigned at driver kernel init
+	 */
+	const struct device *counter_dev;
+	const struct device *usb_midi_dev;
+	const struct device *midi1_serial_dev;
 };
 
 struct midi1_clock_cntr_api {
@@ -77,7 +87,8 @@ void midi1_clock_cntr_ticks_start(const struct device *dev, uint32_t ticks);
  *
  * @note this is not supported on PIT0 channel 0 on NXP
  */
-void midi1_clock_cntr_update_ticks(const struct device *dev, uint32_t new_ticks);
+void midi1_clock_cntr_update_ticks(const struct device *dev,
+				   uint32_t new_ticks);
 
 /**
  * @brief Stop the clock
