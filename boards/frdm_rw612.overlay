@@ -53,6 +53,13 @@
 		compatible = "midi1_serial";
 		uart = <&flexcomm1>;
 	};
+	midi1_clock_counter: midi1_clock_counter {
+		status = "okay";
+		compatible = "midi1_clock_counter";
+		counter = <&ctimer0>;
+		midi1_serial = <&midi0>;
+	};
+
 };
 
 /* EOF */

@@ -83,7 +83,7 @@ static void midi1_cntr_handler(const struct device *actual_counter_dev,
 	 */
 	const struct device *midi1_cntr_device =
 		(const struct device *)midi1_clk_cntr_dev;
-	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = midi1_cntr_device->config;
+	const struct midi1_clock_cntr_config *cfg = midi1_cntr_device->config;
 	struct midi1_clock_cntr_data *data = midi1_cntr_device->data;
 	
 #if MIDI_CLOCK_ON_PIN
@@ -92,21 +92,19 @@ static void midi1_cntr_handler(const struct device *actual_counter_dev,
 	if (!data->running_cntr) {
 		return;
 	}
-	if (data->usb_midi_dev) {
-		//usbd_midi_send(g_midi1_dev, midi1_timing_clock());
-	}
-	if (data->midi1_serial_dev) {
+	if (cfg->midi1_serial_dev) {
 		// Call something maybe to this in a callback instead?
+		LOG_INF("Sending MIDI1 serial clock");
 	}
 	return;
 }
 
 uint32_t midi1_clock_cntr_cpu_frequency(const struct device *dev)
 {
-	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
-	struct midi1_clock_cntr_data *data = dev->data;
+	const struct midi1_clock_cntr_config *cfg = dev->config;
+	[[maybe_unused]] struct midi1_clock_cntr_data *data = dev->data;
 	
-	return counter_get_frequency(data->counter_dev);
+	return counter_get_frequency(cfg->counter_dev);
 }
 
 /*
@@ -120,28 +118,27 @@ static inline void midi1_clock_cntr_noop_cb()
 /*
  * Initialize MIDI clock subsystem
  */
-void midi1_clock_cntr_init(const struct device *dev)
+int midi1_clock_cntr_init(const struct device *dev)
 {
-	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	const struct midi1_clock_cntr_config *cfg = dev->config;
 	struct midi1_clock_cntr_data *data = dev->data;
 	
 	data->running_cntr = false;
 	data->sbpm = 12000;
-	data->counter_dev = DEVICE_DT_GET(DT_ALIAS(COUNTER_DEVICE));
-	
-	if (!device_is_ready(data->counter_dev)) {
+	if (!device_is_ready(cfg->counter_dev)) {
 		LOG_ERR("Counter device not ready");
-		return;
+		return -1;
 	}
 	/* PIT0 counts down, ctimer0 counts up and cannot be changed */
-	data->count_up_clk = counter_is_counting_up(data->counter_dev);
+	data->count_up_clk = counter_is_counting_up(cfg->counter_dev);
 #if MIDI_CLOCK_ON_PIN
 	/*
 	 * TODO: future implementation make an optional GPIO output
 	 * TODO: for the clock
 	 */
 #endif
-	return;
+	LOG_INF("Counter device ready");
+	return 0;
 }
 
 
@@ -150,7 +147,7 @@ void midi1_clock_cntr_init(const struct device *dev)
  */
 void midi1_clock_cntr_ticks_start(const struct device *dev, uint32_t ticks)
 {
-	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	const struct midi1_clock_cntr_config *cfg = dev->config;
 	struct midi1_clock_cntr_data *data = dev->data;
 	
 	int err = 0;
@@ -166,14 +163,14 @@ void midi1_clock_cntr_ticks_start(const struct device *dev, uint32_t ticks)
 		.flags = 0,
 	};
 
-	err = counter_set_top_value(data->counter_dev, &top_cfg);
+	err = counter_set_top_value(cfg->counter_dev, &top_cfg);
 	if (err != 0) {
 		LOG_ERR("Failed to set top value: %d", err);
 		return;
 	}
 
 	/* Start the counter */
-	err = counter_start(data->counter_dev);
+	err = counter_start(cfg->counter_dev);
 	if (err != 0) {
 		LOG_ERR("Failed to start counter: %d", err);
 		return;
@@ -183,8 +180,10 @@ void midi1_clock_cntr_ticks_start(const struct device *dev, uint32_t ticks)
 /* TODO: is not working with PIT!! BUG in my thinking */
 void midi1_clock_cntr_update_ticks(const struct device *dev, uint32_t new_ticks)
 {
-	[[maybe_unused]] const struct midi1_clock_cntr__config *cfg = dev->config;
+	const struct midi1_clock_cntr_config *cfg = dev->config;
 	struct midi1_clock_cntr_data *data = dev->data;
+	
+	data->interval_ticks = new_ticks;
 	
 	struct counter_top_cfg top_cfg = {
 		.callback = midi1_cntr_handler,
@@ -193,7 +192,7 @@ void midi1_clock_cntr_update_ticks(const struct device *dev, uint32_t new_ticks)
 		.flags = COUNTER_TOP_CFG_DONT_RESET,    /* <-- KEY */
 	};
 
-	int err = counter_set_top_value(data->counter_dev, &top_cfg);
+	int err = counter_set_top_value(cfg->counter_dev, &top_cfg);
 	if (err != 0) {
 		LOG_ERR("Failed to set top value: %d", err);
 		return;
@@ -206,7 +205,7 @@ void midi1_clock_cntr_update_ticks(const struct device *dev, uint32_t new_ticks)
  */
 void midi1_clock_cntr_start(const struct device *dev, uint32_t interval_us)
 {
-	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	const struct midi1_clock_cntr_config *cfg = dev->config;
 	struct midi1_clock_cntr_data *data = dev->data;
 	
 	int err = 0;
@@ -216,7 +215,7 @@ void midi1_clock_cntr_start(const struct device *dev, uint32_t interval_us)
 	data->running_cntr = true;
 	data->interval_us = interval_us;
 
-	uint32_t ticks = counter_us_to_ticks(data->counter_dev,
+	uint32_t ticks = counter_us_to_ticks(cfg->counter_dev,
 					     data->interval_us);
 	data->sbpm = us_interval_to_sbpm(data->interval_us);
 
@@ -231,14 +230,14 @@ void midi1_clock_cntr_start(const struct device *dev, uint32_t interval_us)
 		.flags = 0,
 	};
 
-	err = counter_set_top_value(data->counter_dev, &top_cfg);
+	err = counter_set_top_value(cfg->counter_dev, &top_cfg);
 	if (err != 0) {
 		LOG_ERR("Failed to set top value: %d", err);
 		return;
 	}
 
 	/* Start the free running counter */
-	err = counter_start(data->counter_dev);
+	err = counter_start(cfg->counter_dev);
 	if (err != 0) {
 		LOG_ERR("Failed to start counter: %d", err);
 		return;
@@ -262,9 +261,7 @@ void midi1_clock_cntr_gen(const struct device *dev, uint16_t sbpm)
 	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
 	[[maybe_unused]] struct midi1_clock_cntr_data *data = dev->data;
 	
-	midi1_clock_cntr_stop(dev);
-	/* TODO: fixme when we are a proper device driver */
-	midi1_clock_cntr_init(dev);
+	//midi1_clock_cntr_stop(dev);
 	uint32_t ticks = sbpm_to_ticks(sbpm,
 	                               midi1_clock_cntr_cpu_frequency(dev));
 	midi1_clock_cntr_ticks_start(dev, ticks);
@@ -289,9 +286,7 @@ uint16_t midi1_clock_cntr_get_sbpm(const struct device *dev)
 }
 
 /* Zephyr device driver API link to our actual implementation */
-static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
-	.init = midi1_clock_cntr_init,
-	
+static const struct midi1_clock_cntr_api midi1_clock_counter_driver_api = {
 	.cpu_frequency = midi1_clock_cntr_cpu_frequency,
 	.start         = midi1_clock_cntr_start,
 	.ticks_start   = midi1_clock_cntr_ticks_start,
@@ -302,24 +297,23 @@ static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
 	.get_sbpm      = midi1_clock_cntr_get_sbpm,
 };
 
-#define DT_DRV_COMPAT midi1_clock_cntr
+#define DT_DRV_COMPAT midi1_clock_counter
 
-#define MIDI1_CLOCK_CNTR_DEFINE(inst)                                         \
+#define MIDI1_CLOCK_COUNTER_DEFINE(inst)                                      \
 static struct midi1_clock_cntr_data midi1_clock_cntr_data_##inst;             \
 static const struct midi1_clock_cntr_config midi1_clock_cntr_config_##inst = {\
 .counter_dev = DEVICE_DT_GET(DT_INST_PROP(inst, counter)),                    \
-.usb_midi_dev = DEVICE_DT_GET(DT_INST_PROP(inst, usb_midi)),                  \
 .midi1_serial_dev = DEVICE_DT_GET(DT_INST_PROP(inst, midi1_serial)),          \
 };                                                                            \
 DEVICE_DT_INST_DEFINE(inst,                                                   \
 midi1_clock_cntr_init,                                                        \
 NULL,                                                                         \
 &midi1_clock_cntr_data_##inst,                                                \
-&midi1_clock_cntr_##inst,                                                     \
+&midi1_clock_cntr_config_##inst,                                                  \
 POST_KERNEL,                                                                  \
 CONFIG_KERNEL_INIT_PRIORITY_DEVICE,                                           \
-&midi1_clock_cntr_driver_api);
+&midi1_clock_counter_driver_api);
 
-DT_INST_FOREACH_STATUS_OKAY(MIDI1_CLOCK_CNTR_DEFINE)
+DT_INST_FOREACH_STATUS_OKAY(MIDI1_CLOCK_COUNTER_DEFINE)
 
 /* EOF */

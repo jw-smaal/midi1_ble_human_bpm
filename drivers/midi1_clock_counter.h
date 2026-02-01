@@ -23,26 +23,18 @@
 struct midi1_clock_cntr_config {
 	/* TODO handle these assignments also see data */
 	const struct device *counter_dev;
-	const struct device *usb_midi_dev;
 	const struct device *midi1_serial_dev;
 };
 
 struct midi1_clock_cntr_data {
 	uint32_t interval_us;
+	uint32_t interval_ticks;
 	bool running_cntr;
 	uint16_t sbpm;
 	bool count_up_clk;
-	/*
-	 * remove me afterwards --> I want to move this to the overlay
-	 * so they get assigned at driver kernel init
-	 */
-	const struct device *counter_dev;
-	const struct device *usb_midi_dev;
-	const struct device *midi1_serial_dev;
 };
 
 struct midi1_clock_cntr_api {
-	void (*init)(const struct device *dev);
 	uint32_t (*cpu_frequency)(const struct device *dev);
 	void (*start)(const struct device *dev, uint32_t interval_us);
 	void (*ticks_start)(const struct device * dev, uint32_t ticks);
@@ -60,7 +52,7 @@ struct midi1_clock_cntr_api {
  * @note Call once at startup before starting the clock.
  * @param midi1_dev MIDI device pointer
  */
-void midi1_clock_cntr_init(const struct device *dev);
+int midi1_clock_cntr_init(const struct device *dev);
 
 /**
  * @brief getter for the internal counter frequency in MHZ

@@ -30,3 +30,11 @@ config MIDI1_SERIAL_ISR_MSGQ_SIZE_MS
       latency.
 
 endmenu
+
+menu "MIDI1 clock counter driver"
+config MIDI1_CLOCK_COUNTER
+    bool "MIDI1 clock counter driver"
+    default y
+    help
+      Enable the MIDI1 clock counter driver.
+endmenu

@@ -1,0 +1,12 @@
+description: MIDI1 clock system
+compatible: "midi1_clock_counter"
+
+properties:
+  counter:
+    type: phandle
+    required: true
+    description: counter device
+  midi1_serial:
+    type: phandle
+    required: true
+    description: serial midi1 device
