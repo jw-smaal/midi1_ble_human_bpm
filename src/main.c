@@ -371,6 +371,19 @@ int main(void)
 	mid_clk->gen_sbpm(clk, 12345);
 	
 	while (1) {
+		/*
+		 * The global BPM value from BLE HR peripheral
+		 * is set in notify_func
+		 */
+		LOG_INF("g_bpm value is: %d", g_bpm);
+		uint16_t gen_sbpm = g_bpm * 100U;
+		// LOG_INF("gen_sbpm value is: %d", gen_sbpm);
+		mid_clk->gen_sbpm(clk, gen_sbpm);
+		
+		/* Heart rate does not change that fast put in a delay */
+		k_sleep(K_MSEC(3000));
+		
+#if MIDI_TEST_PATTERN
 		/* Running status is used < 300 ms */
 		for (uint8_t value = 0; value < 16; value++) {
 			/* CC1 sweep */
@@ -379,31 +392,20 @@ int main(void)
 			k_sleep(K_MSEC(290));
 		}
 		/* Running status is not used > 300 ms */
-		for (uint8_t value = 0; value < 16; value++) {
+		for (uint8_t value = 60; value < 66; value++) {
 			/* note sweep */
 			//midi1_serial_note_on(midi, CH7, value, 100);
 			mid->note_on(midi, CH7, value, 100);
 			k_sleep(K_MSEC(310));
 		}
 		/* Send as quickly as the uart poll out will allow */
-		for (uint8_t value = 0; value < 16; value++) {
+		for (uint8_t value = 60; value < 66; value++) {
 			/* note off sweep */
 			//midi1_serial_note_off(midi, CH7, value, 100);
 			mid->note_off(midi, CH7, value, 100);
 		}
-		for (uint8_t value = 0; value < 16; value++) {
-			// midi1_serial_start(midi);
-			mid->start(midi);
-			k_sleep(K_MSEC(100));
-			for (uint8_t i = 0; i < 128; i++) {
-				// midi1_serial_timingclock(midi);
-				mid->timingclock(midi);
-				k_sleep(K_MSEC(1));
-			}
-				// midi1_serial_stop(midi);
-			mid->stop(midi);
-			k_sleep(K_MSEC(100));
-		}
+#endif
+		
 	}
 	return 0;
 }

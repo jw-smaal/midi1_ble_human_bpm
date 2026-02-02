@@ -37,6 +37,7 @@ LOG_MODULE_REGISTER(midi1_clock_cntr, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* MIDI helpers by J-W Smaal*/
 #include "midi1.h"
+#include "midi1_serial.h"
 #include "midi1_clock_cntr.h"
 
 
@@ -95,6 +96,7 @@ static void midi1_cntr_handler(const struct device *actual_counter_dev,
 	if (cfg->midi1_serial_dev) {
 		// Call something maybe to this in a callback instead?
 		// LOG_INF("Sending MIDI1 serial clock");
+		midi1_serial_timingclock(cfg->midi1_serial_dev);
 	}
 	return;
 }
@@ -261,7 +263,7 @@ void midi1_clock_cntr_gen(const struct device *dev, uint16_t sbpm)
 	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
 	[[maybe_unused]] struct midi1_clock_cntr_data *data = dev->data;
 	
-	//midi1_clock_cntr_stop(dev);
+	midi1_clock_cntr_stop(dev);
 	uint32_t ticks = sbpm_to_ticks(sbpm,
 	                               midi1_clock_cntr_cpu_frequency(dev));
 	midi1_clock_cntr_ticks_start(dev, ticks);
@@ -272,6 +274,7 @@ void midi1_clock_cntr_gen_sbpm(const struct device *dev, uint16_t sbpm)
 	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
 	[[maybe_unused]] struct midi1_clock_cntr_data *data = dev->data;
 	
+	midi1_clock_cntr_stop(dev);
 	uint32_t ticks = sbpm_to_ticks(sbpm,
 	                               midi1_clock_cntr_cpu_frequency(dev));
 	midi1_clock_cntr_ticks_start(dev, ticks);
@@ -298,7 +301,6 @@ static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
 };
 
 #define MIDI1_CLOCK_CNTR_INIT_PRIORITY 80
-
 
 #define DT_DRV_COMPAT midi1_clock_cntr
 

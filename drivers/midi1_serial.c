@@ -708,6 +708,8 @@ static const struct midi1_serial_api midi1_serial_driver_api = {
 	.sysex_stop = midi1_sysex_stop
 };
 
+#define MIDI1_SERIAL_INIT_PRIORITY 79
+
 #define DT_DRV_COMPAT midi1_serial
 
 #define MIDI1_SERIAL_DEFINE(inst)                                          \
@@ -721,7 +723,7 @@ NULL,                                                                      \
 &midi1_serial_data_##inst,                                                 \
 &midi1_serial_config_##inst,                                               \
 POST_KERNEL,                                                               \
-CONFIG_KERNEL_INIT_PRIORITY_DEVICE,                                        \
+MIDI1_SERIAL_INIT_PRIORITY,                                                \
 &midi1_serial_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(MIDI1_SERIAL_DEFINE)
