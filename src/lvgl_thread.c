@@ -33,6 +33,7 @@ static lv_obj_t *level_bar;
 #define LED_COUNT 16
 static lv_obj_t *leds[LED_COUNT];
 
+
 /*
  *  GUI INITIALIZATION (480×320 landscape)
  */
@@ -97,11 +98,11 @@ static void initialize_gui(void)
 	/* Right: BPM in larger font */
 	label_bpm = lv_label_create(lv_screen_active());
 	lv_obj_set_style_text_font(label_bpm,
-	                           &lv_font_montserrat_18, LV_PART_MAIN);
+	                           &lv_font_montserrat_24, LV_PART_MAIN);
 	lv_obj_set_style_text_color(label_bpm,
 				    lv_color_hex(0xff0000),   /* Red */
 				    LV_PART_MAIN);
-	lv_label_set_text(label_bpm, " 123.89 BPM");
+	lv_label_set_text(label_bpm, "");
 	lv_obj_align(label_bpm, LV_ALIGN_TOP_RIGHT, 0, 0);
 	
 	
@@ -225,6 +226,9 @@ static void ui_add_line(const char *msg)
 	midi_line_count++;
 }
 
+/* We get this one from main */
+extern uint8_t atom_bpm_get(void);
+
 #define MAX_MESSAGES_PER_TICK 3
 void lvgl_thread(void)
 {
@@ -252,6 +256,14 @@ void lvgl_thread(void)
 	while (1) {
 		int processed = 0;
 		uint32_t sleep_ms = 0;
+
+		
+		/* Need to make this thread safe */
+#if 1
+		char buf[MIDI_LINE_MAX];
+		snprintf(buf, sizeof(buf), "BLE hr: %d BPM", atom_bpm_get());
+		lv_label_set_text(label_bpm, buf);
+#endif
 
 		/* Process at most N messages per iteration */
 		while (processed < MAX_MESSAGES_PER_TICK &&

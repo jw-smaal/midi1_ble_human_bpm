@@ -13,25 +13,26 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
-#include <zephyr/types.h>
 #include <stddef.h>
 #include <errno.h>
+#include <lvgl.h>
+#include <string.h>
+#include <zephyr/types.h>
 #include <zephyr/kernel.h>
-#include <zephyr/sys/printk.h>
-
+#include <zephyr/logging/log.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/display.h>
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/conn.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/sys/byteorder.h>
+#include <zephyr/sys/atomic.h>
+#include <zephyr/sys/printk.h>
 
-#include <zephyr/devicetree.h>
-#include <zephyr/drivers/display.h>
-#include <lvgl.h>
-#include <string.h>
-#include <zephyr/logging/log.h>
+
+
 LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* Moved to ../drivers */
@@ -52,6 +53,12 @@ uint64_t total_rx_count; /* This value is exposed to test code */
 
 /* Global BPM set by the bluetooth HR */
 static uint8_t g_bpm = 0;
+static atomic_t atom_bpm = ATOMIC_INIT(0);;
+
+uint8_t atom_bpm_get(void)
+{
+	return (uint8_t)atomic_get(&atom_bpm);
+}
 
 static uint8_t notify_func(struct bt_conn *conn,
 			   struct bt_gatt_subscribe_params *params,
@@ -75,6 +82,7 @@ static uint8_t notify_func(struct bt_conn *conn,
 		/* The MIDI clock hook */
 		//midi_clock_update_from_bpm(bpm);
 		g_bpm = bpm;
+		atomic_set(&atom_bpm, bpm);
 	}
 	total_rx_count++;
 	
@@ -377,11 +385,10 @@ int main(void)
 		 */
 		LOG_INF("g_bpm value is: %d", g_bpm);
 		uint16_t gen_sbpm = g_bpm * 100U;
-		// LOG_INF("gen_sbpm value is: %d", gen_sbpm);
 		mid_clk->gen_sbpm(clk, gen_sbpm);
 		
 		/* Heart rate does not change that fast put in a delay */
-		k_sleep(K_MSEC(3000));
+		k_sleep(K_MSEC(1000));
 		
 #if MIDI_TEST_PATTERN
 		/* Running status is used < 300 ms */
