@@ -1,8 +1,10 @@
-/*
- * Device tree overlay created for the FRDM_RW612 development kit 
- * adjusted  so that we can use it for MIDI out.  
- * by Jan-Willem Smaal <usenet@gispen.org>
- * on 20241223 
+/**
+ * Device tree overlay created for the FRDM_RW612 development kit
+ * adjusted the pinmux so that we can use it for MIDI out and in.
+ * @author Jan-Willem Smaal <usenet@gispen.org>
+ * @date 20241223
+ * updated in 20260206
+ * license SPDX-License-Identifier: Apache-2.0
  */
  
  /* Let's make sure both are enabled and act in the same way as the pit0 */
@@ -48,18 +50,25 @@
 		counterch0 = &ctimer0;
 		counterch1 = &ctimer1;
 	};
+	/* MIDI1.0 serial USART driver, set the uart baud to 31250. */
 	midi0: midi0 {
 		status = "okay";
 		compatible = "midi1_serial";
 		uart = <&flexcomm1>;
 	};
+	/* MIDI1.0 clock generator for SERIAL MIDI1.0 */
 	midi1_clock_cntr: midi1_clock_cntr {
 		status = "okay";
 		compatible = "midi1_clock_cntr";
 		counter = <&ctimer0>;
 		midi1_serial = <&midi0>;
 	};
-
+	/* MIDI1.0 clock measurement system using the Zephyr timer */
+	midi1_clock_meas_cntr: midi1_clock_meas_cntr {
+		status = "okay";
+		compatible = "midi1_clock_meas_cntr";
+		counter = <&ctimer1>;
+	};
 };
 
 /* EOF */

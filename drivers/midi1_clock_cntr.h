@@ -17,7 +17,6 @@
 
 
 struct midi1_clock_cntr_config {
-	/* TODO handle these assignments also see data */
 	const struct device *counter_dev;
 	const struct device *midi1_serial_dev;
 };

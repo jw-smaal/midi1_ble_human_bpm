@@ -31,16 +31,17 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/sys/printk.h>
 
-
-
-LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
-
 /* Moved to ../drivers */
 #include "midi1_serial.h"
 #include "midi1_clock_cntr.h"
+#include "midi1_clock_meas_cntr.h"
+#include "midi1_blockavg.h"
 
 /* Some helpers to print out the note name */
 #include "note.h"
+
+LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
+
 
 static void start_scan(void);
 static struct bt_conn *default_conn;

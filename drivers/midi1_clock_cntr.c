@@ -40,17 +40,6 @@ LOG_MODULE_REGISTER(midi1_clock_cntr, CONFIG_LOG_DEFAULT_LEVEL);
 #include "midi1_serial.h"
 #include "midi1_clock_cntr.h"
 
-
-#if LEGACY_CODE_BEING_PORTED
-/* TODO: put this in a struct */
-static atomic_t g_midi1_running_cntr = false;
-static uint16_t g_sbpm = 0;
-/* This is a USB-MIDI device handle */
-static const struct device *g_midi1_dev;
-const struct device *g_counter_dev;
-static bool g_midi1_clk_count_up_clk = false;
-#endif
-
 /*
  * MIDI clock measurement on a PIN.
  * I used PTC8 on the FRDM_MCXC242 scope confirms correct implementation.  
