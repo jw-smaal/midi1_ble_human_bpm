@@ -1,23 +1,21 @@
-.. zephyr:code-sample:: ble_central_hr
-   :name: Heart-rate Monitor (Central)
-   :relevant-api: bluetooth
-
-   Connect to a Bluetooth LE heart-rate monitor and read heart-rate measurements.
-
 Overview
 ********
 
-Similar to the :zephyr:code-sample:`ble_central` sample, except that this
-application specifically looks for heart-rate monitors and reports the
-heart-rate readings once connected.
+This application specifically looks for heart-rate monitors and reports the
+heart-rate readings once connected.  This has been combined with MIDI1.0 
+serial USART code that transmits a MIDI clock in the same tempo.  
+
+In effect this is a human MIDI1.0 BPM clock. 
 
 Requirements
 ************
 
 * BlueZ running on the host, or
 * A board with Bluetooth LE support
+* Counter support 
 
 Building and Running
 ********************
+west build -b frdm_rw612 --shield lcd_par_s035_spi
 
-See :zephyr:code-sample-category:`bluetooth` samples for details.
+
