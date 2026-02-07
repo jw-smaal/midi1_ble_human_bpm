@@ -29,17 +29,12 @@ config MIDI1_SERIAL_ISR_MSGQ_SIZE_MS
       Size of the MSGQ keep this one as small as possible to avoid queueing 
       latency.
 
-endmenu
-
-menu "MIDI1 clock generator driver"
 config MIDI1_CLOCK_CNTR
     bool "MIDI1 clock generator driver"
     default y
     help
       Enable the MIDI1 clock generator driver. This uses a timer hardware clock.
-endmenu
 
-menu "MIDI1 clock measurement counter driver"
 config MIDI1_CLOCK_MEAS_CNTR
     bool "MIDI1 clock measurement counter driver"
     default y

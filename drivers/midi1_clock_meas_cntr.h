@@ -1,7 +1,7 @@
 
 /**
  * @file midi_clock_meas_cntr.h
- * @brief MIDI 1.0 Clock BPM measurement using Zephyr counter device.
+ * @brief MIDI 1.0 incoming Clock BPM measurement using Zephyr counter device.
  * @details
 
  * Uses a free-running hardware counter to timestamp incoming MIDI Clock
@@ -15,6 +15,7 @@
  *
  * @author Jan-Willem Smaal <usenet@gispen.org>
  * @date 20251230
+ * updated 20260207
  * license SPDX-License-Identifier: Apache-2.0
  */
 #ifndef MIDI1_CLOCK_MEAS_CNTR_H

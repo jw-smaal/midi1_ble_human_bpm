@@ -1,5 +1,6 @@
 
 /*
+ * @file midi_clock_meas_cntr.c
  * @brief MIDI 1.0 Clock BPM measurement using Zephyr counter device.
  * Fully working and verified with external MIDI gear
  * Hardware-accurate clock.
