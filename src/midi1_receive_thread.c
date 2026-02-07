@@ -22,6 +22,7 @@ LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* Moved to ../drivers */
 #include "midi1_serial.h"
+#include "midi1_clock_meas_cntr.h"
 
 /* Some helpers to print out the note name */
 #include "note.h"
@@ -120,7 +121,22 @@ void control_change_handler(uint8_t channel, uint8_t controller, uint8_t value)
 
 void realtime_handler(uint8_t msg)
 {
-	LOG_INF("Realtime: %d", msg);
+	//LOG_INF("Realtime: %d", msg);
+	
+	if (msg == RT_TIMING_CLOCK) {
+		/*
+		 * Here we use the MIDI clock measurement driver
+		 * to count the received BPM.
+		 */
+		const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
+		if (!device_is_ready(meas)) {
+			LOG_INF("MIDI1 clock measurement device not ready");
+			return;
+		}
+		const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
+		mid_meas->pulse(meas);
+	}
+
 }
 
 void sysex_start_handler(void)
@@ -166,7 +182,8 @@ void midi1_serial_receive_thread(void)
 		.pitchwheel = pitchwheel_handler,
 		.sysex_start = sysex_start_handler,
 		.sysex_data = sysex_data_handler,
-		.sysex_stop = sysex_stop_handler
+		.sysex_stop = sysex_stop_handler,
+		.realtime = realtime_handler
 	};
 	/* midi1_serial_register_callbacks(midi, &my_cb); */
 	mid->register_callbacks(midi, &my_cb);

@@ -379,11 +379,24 @@ int main(void)
 	const struct midi1_clock_cntr_api *mid_clk = clk->api;
 	mid_clk->gen_sbpm(clk, 12345);
 	
+	
+	/*
+	 * MIDI clock measurement driver
+	 */
+	const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
+	if (!device_is_ready(meas)) {
+		LOG_INF("MIDI1 clock measurement device not ready");
+		return 0;
+	}
+	LOG_INF("MIDI1 clock measurement device ready...");
+	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
+	
 	while (1) {
 		/*
 		 * The global BPM value from BLE HR peripheral
 		 * is set in notify_func
 		 */
+		LOG_INF("Measured incoming SBPM %d", mid_meas->get_sbpm(meas));
 		LOG_INF("g_bpm value is: %d", g_bpm);
 		uint16_t gen_sbpm = g_bpm * 100U;
 		mid_clk->gen_sbpm(clk, gen_sbpm);
