@@ -48,7 +48,6 @@ struct midi1_clock_meas_cntr_data {
 };
 
 struct midi1_clock_meas_cntr_api {
-	void (*init)(const struct device *dev);
 	void (*pulse)(const struct device *dev);
 	uint32_t (*get_sbpm)(const struct device *dev);
 	bool (*is_valid)(const struct device *dev);
@@ -67,16 +66,13 @@ struct midi1_clock_meas_cntr_api {
  * };
  *
  */
-#ifndef COUNTER_DEVICE_CH1
-#define COUNTER_DEVICE_CH1 counterch1
-#endif
 
 /**
  * @brief Initialize the measurement subsystem.
  *
  * @note Must be called once at startup or when transport restarts.
  */
-void midi1_clock_meas_cntr_init(const struct device *dev);
+int midi1_clock_meas_cntr_init(const struct device *dev);
 
 /**
  * @brief Notify the measurement module that a MIDI Clock (0xF8) pulse arrived.
