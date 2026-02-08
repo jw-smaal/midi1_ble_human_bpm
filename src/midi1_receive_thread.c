@@ -24,7 +24,8 @@ LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 #include "midi1_serial.h"
 #include "midi1_clock_meas_cntr.h"
 
-/* Some helpers to print out the note name */
+/* Some helpers for MIDI  */
+#include "midi1_pll.h"
 #include "note.h"
 
 /* Common stuff in the MIDI monitor application */
@@ -32,6 +33,10 @@ LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 
 K_MSGQ_DEFINE(midi_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
 K_MSGQ_DEFINE(midi_raw_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
+
+/* Global pll */
+static struct midi1_pll_data g_pll;
+
 /**
  * @brief Callbacks/delegates for 'midi1_serial.c' after parsing MIDI1.0
  *
@@ -58,6 +63,7 @@ void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 	         noteToTextWithOctave(note, false), note, velocity);
 	LOG_INF("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
+	return;
 }
 
 void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
@@ -75,6 +81,7 @@ void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 	         noteToTextWithOctave(note, false), note, velocity);
 	LOG_INF("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
+	return;
 }
 
 void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
@@ -87,21 +94,8 @@ void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
 	         channel + 1, pwheel);
 	LOG_INF("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
-
+	return;
 }
-
-#if 0
-void control_change_handler_model(uint8_t channel,
-                                  uint8_t controller, uint8_t value)
-{
-	char line[MIDI_LINE_MAX];
-	
-	snprintf(line, sizeof(line), "CH: %d -> CC: %d value: %d",
-	         channel + 1, controller, value);
-	LOG_INF("%s", line);
-	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
-}
-#endif
 
 void control_change_handler(uint8_t channel, uint8_t controller, uint8_t value)
 {
@@ -117,17 +111,18 @@ void control_change_handler(uint8_t channel, uint8_t controller, uint8_t value)
 	         channel + 1, controller, value);
 	LOG_INF("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
+	return;
 }
 
+/* This feeds the clock measurement driver 'midi_clock_meas_cntr' */
 void realtime_handler(uint8_t msg)
 {
-	//LOG_INF("Realtime: %d", msg);
-	
+	/*
+	 * Here we use the MIDI clock measurement driver
+	 * to count the received BPM.
+	 */
 	if (msg == RT_TIMING_CLOCK) {
-		/*
-		 * Here we use the MIDI clock measurement driver
-		 * to count the received BPM.
-		 */
+
 		const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
 		if (!device_is_ready(meas)) {
 			LOG_INF("MIDI1 clock measurement device not ready");
@@ -135,26 +130,34 @@ void realtime_handler(uint8_t msg)
 		}
 		const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
 		mid_meas->pulse(meas);
+		/* Feed the PLL with this measurement we just did */
+		midi1_pll_process_interval(&g_pll,
+					   mid_meas->interval_ticks(meas));
 	}
-
+	/* We ignore other RT messages for now */
+	return;
 }
 
 void sysex_start_handler(void)
 {
 	LOG_INF("sysex_start_handler()");
+	return;
 }
 
 void sysex_data_handler(uint8_t data)
 {
 	LOG_INF("%x ", data);
+	return;
 }
 
 void sysex_stop_handler(void)
 {
 	LOG_INF("sysex_stop_handler()");
+	return;
 }
 
 /* ---------------------------- THREADS ------------------------------------ */
+
 
 /**
  * Serial receive parser thread - receiveparser keeps reading data
@@ -162,13 +165,25 @@ void sysex_stop_handler(void)
  */
 void midi1_serial_receive_thread(void)
 {
+	/* Serial MIDI1.0 */
 	const struct device *midi = DEVICE_DT_GET(DT_NODELABEL(midi0));
-
 	if (!device_is_ready(midi)) {
 		LOG_ERR("receive_thread Serial MIDI1 device not ready");
 		return;
 	}
 	const struct midi1_serial_api *mid = midi->api;
+	
+	/* We need to find the clock frequency is by the counter. */
+	const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
+	if (!device_is_ready(meas)) {
+		LOG_INF("MIDI1 clock measurement device not ready");
+		return;
+	}
+	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
+	
+	/* Lets init the PLL but adjust the tracking gain from the default */
+	g_pll.tracking_g = 24;
+	midi1_pll_init(&g_pll, 12000, mid_meas->clock_freq(meas));
 
 	/*
 	 * Set the callbacks in the driver to our own callbacks.  Pointers
@@ -188,10 +203,26 @@ void midi1_serial_receive_thread(void)
 	/* midi1_serial_register_callbacks(midi, &my_cb); */
 	mid->register_callbacks(midi, &my_cb);
 
+	int i = 0;
 	while (1) {
 		/* As this call is blocking no need to sleep in between */
 		mid->receiveparser(midi);
+		
+		/* Every 8 beats we print out the BPM */
+		if (i < 24 * 8) {
+			i++;
+		}
+		else {
+			/* In between MIDI processing print some measurements */
+			uint16_t cntr_sbpm = mid_meas->get_sbpm(meas);
+			uint16_t pll_sbpm =
+			pqn24_to_sbpm(midi1_pll_get_interval_us(&g_pll));
+			LOG_INF("--> cntr:[ %d ] pll: [ %d ] <-- ",
+				cntr_sbpm, pll_sbpm);
+			i = 0;
+		}
 	}
+	return;
 }
 
 /*

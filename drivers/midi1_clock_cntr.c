@@ -146,7 +146,7 @@ void midi1_clock_cntr_ticks_start(const struct device *dev, uint32_t ticks)
 		return;
 	}
 	data->running_cntr = true;
-	LOG_INF("Ticks requested: %u", ticks);
+	LOG_DBG("Ticks requested: %u", ticks);
 	struct counter_top_cfg top_cfg = {
 		.callback = midi1_cntr_handler,
 		.user_data = (void *)dev,
@@ -188,7 +188,7 @@ void midi1_clock_cntr_update_ticks(const struct device *dev, uint32_t new_ticks)
 		LOG_ERR("Failed to set top value: %d", err);
 		return;
 	}
-	LOG_INF("Updating ticks to: %u", new_ticks);
+	LOG_DBG("Updating ticks to: %u", new_ticks);
 }
 
 /*

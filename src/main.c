@@ -37,8 +37,10 @@
 #include "midi1_clock_meas_cntr.h"
 #include "midi1_blockavg.h"
 
-/* Some helpers to print out the note name */
+/* Some MIDI1 helpers that are not drivers */
+#include "midi1_pll.h" 
 #include "note.h"
+
 
 LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
 
@@ -396,8 +398,8 @@ int main(void)
 		 * The global BPM value from BLE HR peripheral
 		 * is set in notify_func
 		 */
-		LOG_INF("Measured incoming SBPM %d", mid_meas->get_sbpm(meas));
-		LOG_INF("g_bpm value is: %d", g_bpm);
+		LOG_DBG("Measured incoming SBPM %d", mid_meas->get_sbpm(meas));
+		LOG_DBG("g_bpm value is: %d", g_bpm);
 		uint16_t gen_sbpm = g_bpm * 100U;
 		mid_clk->gen_sbpm(clk, gen_sbpm);
 		

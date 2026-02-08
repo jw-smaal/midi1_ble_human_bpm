@@ -18,4 +18,7 @@ Building and Running
 ********************
 west build -b frdm_rw612 --shield lcd_par_s035_spi
 
-
+--
+author Jan-Willem Smaal <usenet@gispen.org
+date 20251220
+license SPDX-License-Identifier: Apache-2.0
