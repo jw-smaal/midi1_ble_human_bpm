@@ -208,7 +208,7 @@ void midi1_serial_receive_thread(void)
 		/* As this call is blocking no need to sleep in between */
 		mid->receiveparser(midi);
 		
-		/* Every 8 beats we print out the BPM */
+		/* Every 192 MIDI packet received we print out the BPM */
 		if (i < 24 * 8) {
 			i++;
 		}
@@ -217,7 +217,7 @@ void midi1_serial_receive_thread(void)
 			uint16_t cntr_sbpm = mid_meas->get_sbpm(meas);
 			uint16_t pll_sbpm =
 			pqn24_to_sbpm(midi1_pll_get_interval_us(&g_pll));
-			LOG_INF("--> cntr:[ %d ] pll: [ %d ] <-- ",
+			LOG_INF("--> measured:[ %d ] pll: [ %d ] <-- ",
 				cntr_sbpm, pll_sbpm);
 			i = 0;
 		}

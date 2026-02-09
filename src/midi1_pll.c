@@ -1,5 +1,5 @@
 /**
- * @file midi1_pll_.c
+ * @file midi1_pll.c
  * @brief Simple integer PLL for MIDI clock synchronization (24 PPQN).
  * @author Jan-Willem Smaal <usenet@gispen.org>
  * @date 20251229
@@ -17,9 +17,10 @@ void midi1_pll_init(struct midi1_pll_data *data,
 			  uint16_t sbpm,
 			  uint32_t clock_freq)
 {
-	data->k 	= MIDI1_PLL_FILTER_K;
-	data->gain 	= MIDI1_PLL_GAIN_G;
-	data->tracking_g = MIDI1_PLL_TRACK_GAIN;
+	/* If the user has not provided settings take the defaults */
+	if (!data->k ) data->k 	= MIDI1_PLL_FILTER_K;
+	if (!data->gain) data->gain = MIDI1_PLL_GAIN_G;
+	if (!data->tracking_g) data->tracking_g = MIDI1_PLL_TRACK_GAIN;
 	/*
 	 * TODO: We set an average value for the BPM rather than starting from
 	 * TODO: later base it on BPM.
@@ -47,12 +48,12 @@ void midi1_pll_process_interval(struct midi1_pll_data *data,
 
 	/* 2. Low-pass filter the error */
 	data->filtered_error +=
-	    (error - data->filtered_error) / MIDI1_PLL_FILTER_K;
+	    (error - data->filtered_error) / data->k;
 
 	/* 3. Adjust internal interval around nominal */
 	data->internal_interval_ticks =
 		(int32_t) data->nominal_interval_ticks +
-		data->filtered_error / MIDI1_PLL_GAIN_G;
+		data->filtered_error / data->gain;
 
 	/*
 	 * Slow tracking: adapt nominal interval towards long-term average.
@@ -61,7 +62,7 @@ void midi1_pll_process_interval(struct midi1_pll_data *data,
 	 * This makes nominal_interval_ticks follow real BPM over time.
 	 */
 	data->nominal_interval_ticks +=
-	    (int32_t) data->filtered_error / MIDI1_PLL_TRACK_GAIN;
+	    (int32_t) data->filtered_error / data->tracking_g;
 }
 
 int32_t midi1_pll_get_interval_ticks(struct midi1_pll_data *data)

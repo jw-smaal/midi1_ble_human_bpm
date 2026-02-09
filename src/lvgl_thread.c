@@ -257,14 +257,11 @@ void lvgl_thread(void)
 		int processed = 0;
 		uint32_t sleep_ms = 0;
 
-		
-		/* Need to make this thread safe */
-#if 1
 		char buf[MIDI_LINE_MAX];
 		snprintf(buf, sizeof(buf), "BLE hr: %d BPM", atom_bpm_get());
 		lv_label_set_text(label_bpm, buf);
-#endif
-
+		
+		
 		/* Process at most N messages per iteration */
 		while (processed < MAX_MESSAGES_PER_TICK &&
 		       k_msgq_get(&midi_msgq, line, K_NO_WAIT) == 0) {

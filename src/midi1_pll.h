@@ -28,15 +28,21 @@
  */
 #define MIDI1_PLL_TRACK_GAIN 32
 
-#define DEBUG_PLL 0
 
 struct midi1_pll_data {
+	/*
+	 * Configuration of the filter:
+	 */
 	uint8_t k;
 	uint8_t gain;
 	uint8_t tracking_g;
 	
-	/* Moved from global  */
+	/*
+	 * Measurement data:
+	 */
+	/* slow loop ticks  */
 	uint32_t nominal_interval_ticks;
+	/* fast loop ticks  */
 	int32_t internal_interval_ticks;
 	int32_t filtered_error;
 	uint32_t clock_freq;
@@ -73,4 +79,4 @@ uint32_t midi1_pll_get_interval_us(struct midi1_pll_data *data);
  */
 int32_t midi1_pll_get_interval_ticks(struct midi1_pll_data *data);
 
-#endif                          /* MIDI1_CLOCK_PLL_TICKS_H */
+#endif                  /* MIDI1_PLL_H */

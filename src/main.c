@@ -41,6 +41,8 @@
 #include "midi1_pll.h" 
 #include "note.h"
 
+/* My application logic */
+#include "model.h"
 
 LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
 
@@ -50,18 +52,18 @@ static struct bt_conn *default_conn;
 static struct bt_uuid_16 discover_uuid = BT_UUID_INIT_16(0);
 static struct bt_gatt_discover_params discover_params;
 static struct bt_gatt_subscribe_params subscribe_params;
-
 uint64_t total_rx_count; /* This value is exposed to test code */
 
 
-/* Global BPM set by the bluetooth HR */
+/* Global BPM set by the bluetooth HR service */
 static uint8_t g_bpm = 0;
-static atomic_t atom_bpm = ATOMIC_INIT(0);;
+static atomic_t atom_bpm = ATOMIC_INIT(0);
 
 uint8_t atom_bpm_get(void)
 {
 	return (uint8_t)atomic_get(&atom_bpm);
 }
+
 
 static uint8_t notify_func(struct bt_conn *conn,
 			   struct bt_gatt_subscribe_params *params,
@@ -89,23 +91,6 @@ static uint8_t notify_func(struct bt_conn *conn,
 	}
 	total_rx_count++;
 	
-	return BT_GATT_ITER_CONTINUE;
-}
-
-[[maybe_unused]] static uint8_t notify_func2(struct bt_conn *conn,
-			   struct bt_gatt_subscribe_params *params,
-			   const void *data, uint16_t length)
-{
-	if (!data) {
-		LOG_INF("[UNSUBSCRIBED]");
-		params->value_handle = 0U;
-		return BT_GATT_ITER_STOP;
-	}
-
-	LOG_INF("[NOTIFICATION] data %p length %u", data, length);
-
-	total_rx_count++;
-
 	return BT_GATT_ITER_CONTINUE;
 }
 
@@ -361,11 +346,11 @@ int main(void)
 	const struct midi1_serial_api *mid = midi->api;
 	
 	/* Using the API pointer */
-	mid->note_on(midi, CH4, 1, 60);
+	mid->note_on(midi, CH16, 1, 60);
 	k_sleep(K_MSEC(290));
 	
 	/* Using the public interface for the driver same effect */
-	midi1_serial_note_off(midi, CH4, 1, 60);
+	midi1_serial_note_off(midi, CH16, 1, 60);
 	k_sleep(K_MSEC(290));
 	
 	/*
@@ -404,7 +389,7 @@ int main(void)
 		mid_clk->gen_sbpm(clk, gen_sbpm);
 		
 		/* Heart rate does not change that fast put in a delay */
-		k_sleep(K_MSEC(1000));
+		k_sleep(K_MSEC(4000));
 		
 #if MIDI_TEST_PATTERN
 		/* Running status is used < 300 ms */
