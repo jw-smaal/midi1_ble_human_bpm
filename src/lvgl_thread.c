@@ -40,6 +40,11 @@ static lv_obj_t *level_bar;
 #define LED_COUNT 16
 static lv_obj_t *leds[LED_COUNT];
 
+/* Strip chart */
+static lv_obj_t *pll_chart;
+static lv_chart_series_t *pll_ser;
+static lv_chart_series_t *meas_ser;
+
 
 /*
  *  GUI INITIALIZATION (480×320 landscape)
@@ -97,6 +102,9 @@ static void initialize_gui(void)
 	/* =====================================================
 	 *  TOP BAR
 	 * ===================================================== */
+	
+	
+	
 	/* Left: static title */
 	label_title = lv_label_create(lv_screen_active());
 	lv_label_set_text(label_title, "by J-W Smaal");
@@ -134,17 +142,43 @@ static void initialize_gui(void)
 	lv_label_set_text(label_meas, "M");
 	lv_obj_align(label_pll, LV_ALIGN_TOP_LEFT,0, 25);
 
+	
+	/* =====================================================
+	 *  PLL LINE CHART (simple scrolling chart)
+	 * ===================================================== */
+	pll_chart = lv_chart_create(lv_screen_active());
+	lv_obj_set_style_size(pll_chart, 0, 0, LV_PART_ITEMS);
+	lv_obj_set_size(pll_chart, 390, 120);
+	lv_obj_align(pll_chart, LV_ALIGN_BOTTOM_LEFT, 20, -20);
+	
+	lv_chart_set_type(pll_chart, LV_CHART_TYPE_LINE);
+	/* history window */
+	lv_chart_set_point_count(pll_chart, 100);
+	lv_chart_set_update_mode(pll_chart, LV_CHART_UPDATE_MODE_SHIFT);
+	
+	/* PLL values range from 4000 --> 30000 */
+	lv_chart_set_range(pll_chart,
+			   LV_CHART_AXIS_PRIMARY_Y,
+			   4000,
+			   30000);
+	
+	pll_ser = lv_chart_add_series(pll_chart,
+				      lv_palette_main(LV_PALETTE_BLUE),
+				      LV_CHART_AXIS_PRIMARY_Y);
+	meas_ser = lv_chart_add_series(pll_chart,
+				       lv_palette_main(LV_PALETTE_RED),
+				       LV_CHART_AXIS_PRIMARY_Y);
+	
 	/* =====================================================
 	 *  CENTER: LARGE SCROLLABLE TEXT WINDOW
 	 * ===================================================== */
 	ta_midi = lv_textarea_create(lv_screen_active());
-	//lv_label_set_recolor(ta_midi, true);
 	lv_obj_set_style_text_font(ta_midi,
 				   &lv_font_montserrat_18, LV_PART_MAIN);
 
 	/* Size: nearly full screen minus top and bottom bar */
-	lv_obj_set_size(ta_midi, 390, 190);
-	lv_obj_align(ta_midi, LV_ALIGN_TOP_LEFT, 60, 60);
+	lv_obj_set_size(ta_midi, 390, 120);
+	lv_obj_align(ta_midi, LV_ALIGN_TOP_LEFT, 20, 60);
 
 	/* No transparency */
 	lv_obj_set_style_bg_color(ta_midi, lv_color_black(), LV_PART_MAIN);
@@ -211,7 +245,7 @@ static void ui_set_bar(const struct midi1_raw mid_raw)
 	lv_textarea_set_text(label_title, buf);
 }
 
-#define MAX_MIDI_LINES 9
+#define MAX_MIDI_LINES 8
 static int midi_line_count = 0;
 [[maybe_unused]] static void ui_add_line2(const char *msg) {
 	if (!ta_midi) {
@@ -277,7 +311,7 @@ void lvgl_thread(void)
 		model_get(&mod);
 		
 		snprintf(buf, sizeof(buf), "BLE hr: %d BPM",
-			 atom_bpm_get());
+			 mod.hr_bpm);
 		LOG_DBG("%s", buf);
 		lv_label_set_text(label_bpm, buf);
 		
@@ -291,6 +325,9 @@ void lvgl_thread(void)
 		LOG_DBG("%s", buf);
 		lv_label_set_text(label_pll, buf);
 		
+		/* Add PLL value to chart */
+		lv_chart_set_next_value(pll_chart, pll_ser, mod.pll_sbpm);
+		lv_chart_set_next_value(pll_chart, meas_ser, mod.meas_sbpm);
 		
 		/* Process at most N messages per iteration */
 		while (processed < MAX_MESSAGES_PER_TICK &&

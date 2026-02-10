@@ -19,7 +19,7 @@
  */
 struct human_bpm_model {
 	bool hr_connected;
-	uint16_t hr_sbpm;
+	uint16_t hr_bpm;
 	uint16_t meas_sbpm;
 	uint16_t pll_sbpm;
 	uint32_t last_update_ms;
@@ -27,7 +27,7 @@ struct human_bpm_model {
 
 void model_init(void);
 void model_set(bool hr_connected,
-	       uint16_t hr_sbpm,
+	       uint16_t hr_bpm,
 	       uint16_t meas_sbpm,
 	       uint16_t pll_sbpm);
 void model_get(struct human_bpm_model *out);

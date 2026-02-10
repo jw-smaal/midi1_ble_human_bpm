@@ -19,13 +19,13 @@ void model_init(void)
 }
 
 void model_set(bool hr_connected,
-	       uint16_t hr_sbpm,
+	       uint16_t hr_bpm,
 	       uint16_t meas_sbpm,
 	       uint16_t pll_sbpm)
 {
 	k_mutex_lock(&g_model_lock, K_FOREVER);
 	g_model.hr_connected = hr_connected;
-	if(hr_sbpm) g_model.hr_sbpm = hr_sbpm;
+	if(hr_bpm) g_model.hr_bpm = hr_bpm;
 	if(meas_sbpm) g_model.meas_sbpm = meas_sbpm;
 	if(pll_sbpm) g_model.pll_sbpm = pll_sbpm ;
 	g_model.last_update_ms = k_uptime_get_32();

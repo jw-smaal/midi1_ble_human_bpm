@@ -185,7 +185,7 @@ void midi1_serial_receive_thread(void)
 	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
 	
 	/* Lets init the PLL but adjust the tracking gain from the default */
-	g_pll.tracking_g = 24;
+	g_pll.tracking_g = 27;
 	midi1_pll_init(&g_pll, 12000, mid_meas->clock_freq(meas));
 
 	/*
