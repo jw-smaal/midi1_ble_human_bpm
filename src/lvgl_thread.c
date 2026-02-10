@@ -19,7 +19,13 @@
 #include <string.h>
 #include <zephyr/logging/log.h>
 
+
+#include "midi1.h"
 #include "common.h"
+#include "model.h"
+
+
+
 
 LOG_MODULE_REGISTER(lvgl_screen1, CONFIG_LOG_DEFAULT_LEVEL);
 /*
@@ -27,7 +33,8 @@ LOG_MODULE_REGISTER(lvgl_screen1, CONFIG_LOG_DEFAULT_LEVEL);
  */
 static lv_obj_t *label_title;
 static lv_obj_t *label_bpm;
-static lv_obj_t *label_channel;
+static lv_obj_t *label_pll;
+static lv_obj_t *label_meas;
 static lv_obj_t *ta_midi;
 static lv_obj_t *level_bar;
 #define LED_COUNT 16
@@ -92,29 +99,40 @@ static void initialize_gui(void)
 	 * ===================================================== */
 	/* Left: static title */
 	label_title = lv_label_create(lv_screen_active());
-	lv_label_set_text(label_title, "MIDI Monitor by J-W Smaal v0.1");
-	lv_obj_align(label_title, LV_ALIGN_TOP_LEFT, 6, 4);
+	lv_label_set_text(label_title, "by J-W Smaal");
+	lv_obj_align(label_title, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
 
 	/* Right: BPM in larger font */
 	label_bpm = lv_label_create(lv_screen_active());
 	lv_obj_set_style_text_font(label_bpm,
 	                           &lv_font_montserrat_24, LV_PART_MAIN);
 	lv_obj_set_style_text_color(label_bpm,
-				    lv_color_hex(0xff0000),   /* Red */
+				    lv_color_hex(0xA0ff00),   /* Blue */
 				    LV_PART_MAIN);
 	lv_label_set_text(label_bpm, "");
 	lv_obj_align(label_bpm, LV_ALIGN_TOP_RIGHT, 0, 0);
 	
 	
-	/* Left: Channel on the left */
-	label_channel = lv_label_create(lv_screen_active());
-	lv_obj_set_style_text_font(label_channel,
+	/* Left: PLL measurement on the left */
+	label_pll = lv_label_create(lv_screen_active());
+	lv_obj_set_style_text_font(label_pll,
 				   &lv_font_montserrat_18, LV_PART_MAIN);
-	lv_obj_set_style_text_color(label_channel,
-				    lv_color_hex(0x006400),   /* dark green */
+	lv_obj_set_style_text_color(label_pll,
+				    lv_color_hex(0x00ffA0),   /* green */
 				    LV_PART_MAIN);
-	lv_label_set_text(label_channel, "CHxx");
-	lv_obj_align(label_channel, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+	lv_label_set_text(label_pll, "P");
+	lv_obj_align(label_pll, LV_ALIGN_TOP_LEFT, 0, 0);
+	
+	
+	/* Left: PLL measurement on the left */
+	label_meas = lv_label_create(lv_screen_active());
+	lv_obj_set_style_text_font(label_meas,
+				   &lv_font_montserrat_18, LV_PART_MAIN);
+	lv_obj_set_style_text_color(label_meas,
+				    lv_color_hex(0x00ff00),   /* green */
+				    LV_PART_MAIN);
+	lv_label_set_text(label_meas, "M");
+	lv_obj_align(label_pll, LV_ALIGN_TOP_LEFT,0, 25);
 
 	/* =====================================================
 	 *  CENTER: LARGE SCROLLABLE TEXT WINDOW
@@ -125,8 +143,8 @@ static void initialize_gui(void)
 				   &lv_font_montserrat_18, LV_PART_MAIN);
 
 	/* Size: nearly full screen minus top and bottom bar */
-	lv_obj_set_size(ta_midi, 390, 220);
-	lv_obj_align(ta_midi, LV_ALIGN_TOP_LEFT, 6, 40);
+	lv_obj_set_size(ta_midi, 390, 190);
+	lv_obj_align(ta_midi, LV_ALIGN_TOP_LEFT, 60, 60);
 
 	/* No transparency */
 	lv_obj_set_style_bg_color(ta_midi, lv_color_black(), LV_PART_MAIN);
@@ -134,11 +152,9 @@ static void initialize_gui(void)
 
 	/* Whitetext by default */
 	lv_obj_set_style_text_color(ta_midi, lv_color_white(), LV_PART_MAIN);
-
 	lv_textarea_set_text(ta_midi, "");
 	lv_textarea_set_max_length(ta_midi, 4096);
 	lv_textarea_set_cursor_click_pos(ta_midi, false);
-	
 	
 	/*
 	 * Level bar
@@ -149,7 +165,7 @@ static void initialize_gui(void)
 	lv_bar_set_range(level_bar, 0, 127);
 	
 	/* Size and position */
-	lv_obj_set_size(level_bar, 240, 20);   /* width, height */
+	lv_obj_set_size(level_bar, 220, 20);   /* width, height */
 	lv_obj_align(level_bar, LV_ALIGN_BOTTOM_MID, 0, 0);
 	
 #if 0
@@ -253,13 +269,27 @@ void lvgl_thread(void)
 	
 	char line[MIDI_LINE_MAX];
 	struct midi1_raw mid_raw;
+	struct human_bpm_model mod;
 	while (1) {
 		int processed = 0;
 		uint32_t sleep_ms = 0;
-
 		char buf[MIDI_LINE_MAX];
-		snprintf(buf, sizeof(buf), "BLE hr: %d BPM", atom_bpm_get());
+		model_get(&mod);
+		
+		snprintf(buf, sizeof(buf), "BLE hr: %d BPM",
+			 atom_bpm_get());
+		LOG_DBG("%s", buf);
 		lv_label_set_text(label_bpm, buf);
+		
+		snprintf(buf, sizeof(buf), "Meas: %s",
+			 sbpm_to_str(mod.meas_sbpm));
+		LOG_DBG("%s", buf);
+		lv_label_set_text(label_meas, buf);
+		
+		snprintf(buf, sizeof(buf), "PLL: %s",
+			 sbpm_to_str(mod.pll_sbpm));
+		LOG_DBG("%s", buf);
+		lv_label_set_text(label_pll, buf);
 		
 		
 		/* Process at most N messages per iteration */

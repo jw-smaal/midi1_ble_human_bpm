@@ -30,6 +30,7 @@ LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* Common stuff in the MIDI monitor application */
 #include "common.h"
+#include "model.h"
 
 K_MSGQ_DEFINE(midi_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
 K_MSGQ_DEFINE(midi_raw_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
@@ -123,7 +124,8 @@ void realtime_handler(uint8_t msg)
 	 */
 	if (msg == RT_TIMING_CLOCK) {
 
-		const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
+		const struct device *meas = DEVICE_DT_GET(
+			DT_NODELABEL(midi1_clock_meas_cntr));
 		if (!device_is_ready(meas)) {
 			LOG_INF("MIDI1 clock measurement device not ready");
 			return;
@@ -174,7 +176,8 @@ void midi1_serial_receive_thread(void)
 	const struct midi1_serial_api *mid = midi->api;
 	
 	/* We need to find the clock frequency is by the counter. */
-	const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
+	const struct device *meas = DEVICE_DT_GET(
+					DT_NODELABEL(midi1_clock_meas_cntr));
 	if (!device_is_ready(meas)) {
 		LOG_INF("MIDI1 clock measurement device not ready");
 		return;
@@ -203,24 +206,16 @@ void midi1_serial_receive_thread(void)
 	/* midi1_serial_register_callbacks(midi, &my_cb); */
 	mid->register_callbacks(midi, &my_cb);
 
-	int i = 0;
+
 	while (1) {
 		/* As this call is blocking no need to sleep in between */
 		mid->receiveparser(midi);
-		
-		/* Every 192 MIDI packet received we print out the BPM */
-		if (i < 24 * 8) {
-			i++;
-		}
-		else {
-			/* In between MIDI processing print some measurements */
-			uint16_t cntr_sbpm = mid_meas->get_sbpm(meas);
-			uint16_t pll_sbpm =
-			pqn24_to_sbpm(midi1_pll_get_interval_us(&g_pll));
-			LOG_INF("--> measured:[ %d ] pll: [ %d ] <-- ",
+		uint16_t cntr_sbpm = mid_meas->get_sbpm(meas);
+		uint16_t pll_sbpm = pqn24_to_sbpm(
+					midi1_pll_get_interval_us(&g_pll));
+		LOG_DBG("--> measured:[ %d ] pll: [ %d ] <-- ",
 				cntr_sbpm, pll_sbpm);
-			i = 0;
-		}
+		model_set(true, 0, cntr_sbpm, pll_sbpm);
 	}
 	return;
 }

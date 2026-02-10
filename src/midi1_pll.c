@@ -21,14 +21,13 @@ void midi1_pll_init(struct midi1_pll_data *data,
 	if (!data->k ) data->k 	= MIDI1_PLL_FILTER_K;
 	if (!data->gain) data->gain = MIDI1_PLL_GAIN_G;
 	if (!data->tracking_g) data->tracking_g = MIDI1_PLL_TRACK_GAIN;
-	/*
-	 * TODO: We set an average value for the BPM rather than starting from
-	 * TODO: later base it on BPM.
-	 */
-	data->nominal_interval_ticks = 503000;
-	data->internal_interval_ticks = (int32_t) data->nominal_interval_ticks;
-	data->filtered_error = 0;
 	data->clock_freq = clock_freq;
+	
+	data->nominal_interval_ticks = sbpm_to_ticks(sbpm, clock_freq);
+	/* Initialize internal PLL state */
+	data->internal_interval_ticks = (int32_t)data->nominal_interval_ticks;
+	data->filtered_error = 0;
+	return;
 }
 
 /*
@@ -63,6 +62,7 @@ void midi1_pll_process_interval(struct midi1_pll_data *data,
 	 */
 	data->nominal_interval_ticks +=
 	    (int32_t) data->filtered_error / data->tracking_g;
+	return;
 }
 
 int32_t midi1_pll_get_interval_ticks(struct midi1_pll_data *data)

@@ -378,6 +378,9 @@ int main(void)
 	LOG_INF("MIDI1 clock measurement device ready...");
 	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
 	
+	
+	model_init();
+	
 	while (1) {
 		/*
 		 * The global BPM value from BLE HR peripheral
@@ -387,6 +390,8 @@ int main(void)
 		LOG_DBG("g_bpm value is: %d", g_bpm);
 		uint16_t gen_sbpm = g_bpm * 100U;
 		mid_clk->gen_sbpm(clk, gen_sbpm);
+		
+		model_set(true, g_bpm, mid_meas->get_sbpm(meas), 0);
 		
 		/* Heart rate does not change that fast put in a delay */
 		k_sleep(K_MSEC(4000));
