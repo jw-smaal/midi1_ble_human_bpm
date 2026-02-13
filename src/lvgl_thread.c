@@ -221,7 +221,7 @@ void lvgl_thread(void)
 	initialize_gui();
 	
 	char line[MIDI_LINE_MAX];
-	struct midi1_raw mid_raw;
+	//struct midi1_raw mid_raw;
 	struct human_bpm_model mod;
 	while (1) {
 		int processed = 0;
@@ -255,19 +255,6 @@ void lvgl_thread(void)
 			//ui_set_line(line);
 			processed++;
 		}
-		sleep_ms = lv_timer_handler();
-		k_msleep(sleep_ms);
-		
-		/* The raw midi stuff  that updates the bar */
-#if 0
-		while (processed < MAX_MESSAGES_PER_TICK &&
-			k_msgq_get(&midi_raw_msgq, &mid_raw, K_NO_WAIT) == 0) {
-			ui_set_bar(mid_raw);
-			ui_set_led_level(mid_raw.p1);
-			processed++;
-		}
-#endif 
-		
 		sleep_ms = lv_timer_handler();
 		k_msleep(sleep_ms);
 	}

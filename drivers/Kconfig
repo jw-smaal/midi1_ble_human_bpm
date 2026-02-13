@@ -40,4 +40,11 @@ config MIDI1_CLOCK_MEAS_CNTR
     default y
     help
       Enable the MIDI1 clock measurement counter driver.
+      
+config MIDI1_CLOCK_MEAS_BLOCKAVG_SIZE
+    int "Clock measurement block average size"
+    default 6
+    range 1 48
+    help
+      In order to take up tempo changes quickly keep this value low.
 endmenu

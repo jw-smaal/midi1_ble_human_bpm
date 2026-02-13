@@ -33,7 +33,7 @@ LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 #include "model.h"
 
 K_MSGQ_DEFINE(midi_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
-K_MSGQ_DEFINE(midi_raw_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
+// K_MSGQ_DEFINE(midi_raw_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
 
 /* Global pll */
 static struct midi1_pll_data g_pll;
@@ -52,13 +52,6 @@ static struct midi1_pll_data g_pll;
 void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
 	char line[MIDI_LINE_MAX];
-	struct midi1_raw mid_raw = {
-		.channel = channel,
-		.p1 = note,
-		.p2 = velocity
-	};
-	k_msgq_put(&midi_raw_msgq, &mid_raw, K_NO_WAIT);
-	
 	snprintf(line, sizeof(line), "CH: %d -> Note   on: %s %03d %03d",
 	         channel + 1,
 	         noteToTextWithOctave(note, false), note, velocity);
@@ -70,13 +63,6 @@ void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
 	char line[MIDI_LINE_MAX];
-	struct midi1_raw mid_raw = {
-		.channel = channel,
-		.p1 = note,
-		.p2 = velocity
-	};
-	k_msgq_put(&midi_raw_msgq, &mid_raw, K_NO_WAIT);
-	
 	snprintf(line, sizeof(line), "CH: %d -> Note  off: %s %03d %03d",
 	         channel + 1,
 	         noteToTextWithOctave(note, false), note, velocity);
@@ -89,7 +75,6 @@ void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
 {
 	/* 14 bit value for the pitch wheel  */
 	int16_t pwheel = (int16_t) ((msb << 7) | lsb) - PITCHWHEEL_CENTER;
-
 	char line[MIDI_LINE_MAX];
 	snprintf(line, sizeof(line), "CH: %d -> Pitchwheel: %d",
 	         channel + 1, pwheel);
@@ -101,13 +86,6 @@ void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
 void control_change_handler(uint8_t channel, uint8_t controller, uint8_t value)
 {
 	char line[MIDI_LINE_MAX];
-	struct midi1_raw mid_raw = {
-		.channel = channel,
-		.p1 = controller,
-		.p2 = value
-	};
-	k_msgq_put(&midi_raw_msgq, &mid_raw, K_NO_WAIT);
-	
 	snprintf(line, sizeof(line), "CH: %d -> CC: %d value: %d",
 	         channel + 1, controller, value);
 	LOG_INF("%s", line);

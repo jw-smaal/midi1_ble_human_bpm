@@ -14,8 +14,10 @@
 /**
  * @note over which amount of samples do we take the
  * measurement.
+ * Defined in Kconfig
  */
-#define MIDI1_BLOCKAVG_SIZE 48
+//#define MIDI1_BLOCKAVG_SIZE 12
+#define MIDI1_BLOCKAVG_SIZE CONFIG_MIDI1_CLOCK_MEAS_BLOCKAVG_SIZE
 
 struct midi1_blockavg {
 	uint32_t buf[MIDI1_BLOCKAVG_SIZE];
