@@ -10,23 +10,22 @@
 #include <stdint.h>
 
 /* Loop filter constants */
-
 /*
  * Low‑pass filter strength keep it high... sudden tempo changes
  * should be followed though.
  */
-#define MIDI1_PLL_FILTER_K  4
+#define MIDI1_PLL_FILTER_K  CONFIG_PLL_FILTER_K
 
 /*
  * Correction gain keep it low we want to move towards the value
  * but not overshoot
  */
-#define MIDI1_PLL_GAIN_G    4
+#define MIDI1_PLL_GAIN_G    CONFIG_PLL_FILTER_GAIN
 
 /*
  * Slow loop tracking gain.
  */
-#define MIDI1_PLL_TRACK_GAIN 32
+#define MIDI1_PLL_TRACK_GAIN CONFIG_PLL_TRACK_GAIN
 
 
 struct midi1_pll_data {

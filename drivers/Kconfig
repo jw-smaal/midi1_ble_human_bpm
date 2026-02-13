@@ -1,4 +1,4 @@
-menu "MIDI1 serial UART" 
+menu "[ MIDI1 serial UART ]" 
 config MIDI1_SERIAL
     bool "MIDI1 UART driver"
     default y

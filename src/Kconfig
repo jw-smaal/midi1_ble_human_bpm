@@ -1,0 +1,20 @@
+menu "[ Human MIDI BPM clock MIDI1 application settings ]" 
+config PLL_FILTER_K
+    int "PLL filter K value"
+    default 4
+    range 1 64
+    help
+	Filter K value 
+config PLL_FILTER_GAIN
+    int "PLL filter gain value"
+    default 4
+    range 1 64
+    help
+	Filter Gain value 
+config PLL_TRACK_GAIN
+    int "PLL tracking gain value"
+    default 32
+    range 1 128
+    help
+	Filter Tracking Gain value 
+endmenu
