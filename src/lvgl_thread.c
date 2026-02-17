@@ -1,5 +1,5 @@
 /**
- * LVGL stuff
+ * LVGL LCD Graphical user interface
  *
  * @author Jan-Willem Smaal <usenet@gispen.org>
  * @date 20260107
@@ -19,12 +19,9 @@
 #include <string.h>
 #include <zephyr/logging/log.h>
 
-
 #include "midi1.h"
 #include "common.h"
 #include "model.h"
-
-
 
 
 LOG_MODULE_REGISTER(lvgl_screen1, CONFIG_LOG_DEFAULT_LEVEL);
@@ -81,8 +78,6 @@ static void initialize_gui(void)
 	/* =====================================================
 	 *  TOP BAR
 	 * ===================================================== */
-	
-
 	/* Left: static title */
 	label_title = lv_label_create(lv_screen_active());
 	lv_label_set_text(label_title, "by J-W Smaal");
@@ -98,7 +93,6 @@ static void initialize_gui(void)
 	lv_label_set_text(label_bpm, "");
 	lv_obj_align(label_bpm, LV_ALIGN_TOP_RIGHT, 0, 0);
 	
-	
 	/* Left: PLL measurement on the left */
 	label_pll = lv_label_create(lv_screen_active());
 	lv_obj_set_style_text_font(label_pll,
@@ -108,7 +102,6 @@ static void initialize_gui(void)
 	//			    LV_PART_MAIN);
 	lv_label_set_text(label_pll, "P");
 	lv_obj_align(label_pll, LV_ALIGN_TOP_LEFT, 0, 0);
-	
 	
 	/* Left: PLL measurement on the left */
 	label_meas = lv_label_create(lv_screen_active());
@@ -133,13 +126,11 @@ static void initialize_gui(void)
 	/* history window */
 	lv_chart_set_point_count(pll_chart, 100);
 	lv_chart_set_update_mode(pll_chart, LV_CHART_UPDATE_MODE_SHIFT);
-	
 	/* PLL values range from 4000 --> 30000 */
 	lv_chart_set_range(pll_chart,
 			   LV_CHART_AXIS_PRIMARY_Y,
 			   4000,
 			   30000);
-	
 	pll_ser = lv_chart_add_series(pll_chart,
 				      lv_palette_main(LV_PALETTE_BLUE),
 				      LV_CHART_AXIS_PRIMARY_Y);
@@ -153,15 +144,12 @@ static void initialize_gui(void)
 	ta_midi = lv_textarea_create(lv_screen_active());
 	lv_obj_set_style_text_font(ta_midi,
 				   &lv_font_montserrat_12, LV_PART_MAIN);
-
 	/* Size: nearly full screen minus top and bottom bar */
 	lv_obj_set_size(ta_midi, 390, 120);
 	lv_obj_align(ta_midi, LV_ALIGN_TOP_LEFT, 20, 60);
-
 	/* No transparency */
 	//lv_obj_set_style_bg_color(ta_midi, lv_color_black(), LV_PART_MAIN);
 	lv_obj_set_style_bg_opa(ta_midi, LV_OPA_COVER, LV_PART_MAIN);
-
 	/* Black text by default */
 	lv_obj_set_style_text_color(ta_midi, lv_color_black(), LV_PART_MAIN);
 	lv_textarea_set_text(ta_midi, "");

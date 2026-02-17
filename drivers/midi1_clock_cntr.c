@@ -61,8 +61,7 @@ static void midi1_debug_gpio_init(void)
 
 /* 
  * This is the ISR/callback
- * TODO: check if usbd_midi_send is non-blocking
- * TODO: add uart send as well
+ * TODO: Add option for USB MIDI 'usbd_midi_send()' 
  */
 static void midi1_cntr_handler(const struct device *actual_counter_dev,
 			       void *midi1_clk_cntr_dev)
@@ -83,8 +82,6 @@ static void midi1_cntr_handler(const struct device *actual_counter_dev,
 		return;
 	}
 	if (cfg->midi1_serial_dev) {
-		// Call something maybe to this in a callback instead?
-		// LOG_INF("Sending MIDI1 serial clock");
 		midi1_serial_timingclock(cfg->midi1_serial_dev);
 	}
 	return;
@@ -277,6 +274,33 @@ uint16_t midi1_clock_cntr_get_sbpm(const struct device *dev)
 	return data->sbpm;
 }
 
+
+uint32_t midi1_clock_cntr_get_interval_us(const struct device *dev)
+{
+	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	struct midi1_clock_cntr_data *data = dev->data;
+	
+	return data->interval_us;
+}
+
+uint32_t midi1_clock_cntr_get_interval_tick(const struct device *dev)
+{
+	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	struct midi1_clock_cntr_data *data = dev->data;
+	
+	return data->interval_ticks;
+}
+
+bool midi1_clock_cntr_get_running(const struct device *dev)
+{
+	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	struct midi1_clock_cntr_data *data = dev->data;
+	
+	return data->running_cntr;
+}
+
+
+
 /* Zephyr device driver API link to our actual implementation */
 static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
 	.cpu_frequency = midi1_clock_cntr_cpu_frequency,
@@ -287,6 +311,9 @@ static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
 	.gen           = midi1_clock_cntr_gen,
 	.gen_sbpm      = midi1_clock_cntr_gen_sbpm,
 	.get_sbpm      = midi1_clock_cntr_get_sbpm,
+	.get_interval_us   = midi1_clock_cntr_get_interval_us,
+	.get_interval_tick = midi1_clock_cntr_get_interval_tick,
+	.get_running   = midi1_clock_cntr_get_running,
 };
 
 #define MIDI1_CLOCK_CNTR_INIT_PRIORITY 80

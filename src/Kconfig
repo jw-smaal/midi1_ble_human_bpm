@@ -4,17 +4,19 @@ config PLL_FILTER_K
     default 4
     range 1 64
     help
-	Filter K value 
+	Filter K value Low‑pass filter strength keep it high... sudden tempo
+	changes should be followed though.
 config PLL_FILTER_GAIN
     int "PLL filter gain value"
     default 4
     range 1 64
     help
-	Filter Gain value 
+	Filter Gain value Correction gain keep it low we want to move towards
+	the value but not overshoot
 config PLL_TRACK_GAIN
     int "PLL tracking gain value"
     default 32
     range 1 128
     help
-	Filter Tracking Gain value 
+	Filter Slow loop Tracking Gain value
 endmenu

@@ -26,14 +26,10 @@
 #define MIDI_MSGQ_MAX 32
 /* Defined in midi1_receive_thread */
 extern struct k_msgq midi_msgq;
-extern struct k_msgq midi_raw_msgq;
 
-/* just a struct we pass to be able to draw a bar */
-struct midi1_raw {
-	uint8_t channel;
-	uint8_t p1;
-	uint8_t p2;
-};
 
+/* Global pll */
+#include "midi1_pll.h"
+extern struct midi1_pll_data g_pll;
 
 #endif

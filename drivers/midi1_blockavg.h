@@ -16,7 +16,6 @@
  * measurement.
  * Defined in Kconfig
  */
-//#define MIDI1_BLOCKAVG_SIZE 12
 #define MIDI1_BLOCKAVG_SIZE CONFIG_MIDI1_CLOCK_MEAS_BLOCKAVG_SIZE
 
 struct midi1_blockavg {

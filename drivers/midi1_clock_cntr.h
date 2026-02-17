@@ -38,7 +38,9 @@ struct midi1_clock_cntr_api {
 	void (*gen)(const struct device *dev, uint16_t sbpm);
 	void (*gen_sbpm)(const struct device *dev, uint16_t sbpm);
 	uint16_t (*get_sbpm)(const struct device *dev);
-
+	uint32_t (*get_interval_us)(const struct device *dev);
+	uint32_t (*get_interval_tick)(const struct device *dev);
+	bool (*get_running)(const struct device *dev);
 };
 
 /**
@@ -105,6 +107,14 @@ void midi1_clock_cntr_gen_sbpm(const struct device *dev, uint16_t sbpm);
  * @return sbpm scaled BPM like 123.12 is returned like 12312
  */
 uint16_t midi1_clock_cntr_get_sbpm(const struct device *dev);
+
+
+uint32_t midi1_clock_cntr_get_interval_us(const struct device *dev);
+
+uint32_t midi1_clock_cntr_get_interval_tick(const struct device *dev);
+
+bool midi1_clock_cntr_get_running(const struct device *dev);
+
 
 #endif /* MIDI1_CLOCK_COUNTER */
 /* EOF */

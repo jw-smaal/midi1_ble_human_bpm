@@ -1,12 +1,12 @@
 menu "[ MIDI1 serial UART ]" 
 config MIDI1_SERIAL
-    bool "MIDI1 UART driver"
+    bool "MIDI1 serial UART driver"
     default y
     help
       Enable the MIDI1 serial driver.
       
 config MIDI1_SERIAL_RUNNING_STATUS_REPEAT
-    int "After how many times without a status byte do we send a new one"
+    int "MIDI1 Serial Running status, after how many times without a status byte do we send a new one"
     default 16
     range 0 64
     help
@@ -14,7 +14,7 @@ config MIDI1_SERIAL_RUNNING_STATUS_REPEAT
       to 0 the status byte is always sent.
 
 config MIDI1_SERIAL_RUNNING_STATUS_TIMEOUT_MS
-    int "Running status timeout (ms)"
+    int "MIDI1 serial Running status timeout (ms)"
     default 300
     range 50 300
     help
@@ -22,7 +22,7 @@ config MIDI1_SERIAL_RUNNING_STATUS_TIMEOUT_MS
       automatically send a new status byte.
 
 config MIDI1_SERIAL_ISR_MSGQ_SIZE_MS
-    int "Size of the rx message queue"
+    int "MIDI1 serial size of the MIDI serial UART rx message queue"
     default 128
     range 8 512
     help

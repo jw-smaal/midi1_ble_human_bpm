@@ -42,6 +42,7 @@
 #include "note.h"
 
 /* My application logic */
+#include "common.h"
 #include "model.h"
 
 LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
@@ -390,8 +391,15 @@ int main(void)
 		LOG_DBG("g_bpm value is: %d", g_bpm);
 		uint16_t gen_sbpm = g_bpm * 100U;
 		mid_clk->gen_sbpm(clk, gen_sbpm);
+		model_set(true, g_bpm, mid_meas->get_sbpm(meas), 0, 0);
+		/*
+		 * Fire off a a workqueue that periodically blinks a led
+		 * for 15 ms
+		 * TODO: work in progress
+		 */
+		uint32_t interval = mid_clk->get_interval_us(clk);
 		
-		model_set(true, g_bpm, mid_meas->get_sbpm(meas), 0);
+		
 		
 		/* Heart rate does not change that fast put in a delay */
 		k_sleep(K_MSEC(4000));

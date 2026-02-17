@@ -33,10 +33,6 @@ LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 #include "model.h"
 
 K_MSGQ_DEFINE(midi_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
-// K_MSGQ_DEFINE(midi_raw_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
-
-/* Global pll */
-static struct midi1_pll_data g_pll;
 
 /**
  * @brief Callbacks/delegates for 'midi1_serial.c' after parsing MIDI1.0
@@ -55,7 +51,7 @@ void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 	snprintf(line, sizeof(line), "CH: %d -> Note   on: %s %03d %03d",
 	         channel + 1,
 	         noteToTextWithOctave(note, false), note, velocity);
-	LOG_INF("%s", line);
+	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
 }
@@ -66,7 +62,7 @@ void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 	snprintf(line, sizeof(line), "CH: %d -> Note  off: %s %03d %03d",
 	         channel + 1,
 	         noteToTextWithOctave(note, false), note, velocity);
-	LOG_INF("%s", line);
+	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
 }
@@ -78,7 +74,7 @@ void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
 	char line[MIDI_LINE_MAX];
 	snprintf(line, sizeof(line), "CH: %d -> Pitchwheel: %d",
 	         channel + 1, pwheel);
-	LOG_INF("%s", line);
+	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
 }
@@ -88,7 +84,7 @@ void control_change_handler(uint8_t channel, uint8_t controller, uint8_t value)
 	char line[MIDI_LINE_MAX];
 	snprintf(line, sizeof(line), "CH: %d -> CC: %d value: %d",
 	         channel + 1, controller, value);
-	LOG_INF("%s", line);
+	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
 }
@@ -110,7 +106,10 @@ void realtime_handler(uint8_t msg)
 		}
 		const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
 		mid_meas->pulse(meas);
-		/* Feed the PLL with this measurement we just did */
+		/*
+		 * Feed the PLL with this measurement we just did
+		 * 'g_pll' is defined in 'common.c'
+		 */
 		midi1_pll_process_interval(&g_pll,
 					   mid_meas->interval_ticks(meas));
 	}
@@ -153,7 +152,7 @@ void midi1_serial_receive_thread(void)
 	}
 	const struct midi1_serial_api *mid = midi->api;
 	
-	/* We need to find the clock frequency is by the counter. */
+	/* We need to find the clock frequency used by the counter. */
 	const struct device *meas = DEVICE_DT_GET(
 					DT_NODELABEL(midi1_clock_meas_cntr));
 	if (!device_is_ready(meas)) {
@@ -163,7 +162,7 @@ void midi1_serial_receive_thread(void)
 	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
 	
 	/* Lets init the PLL but adjust the tracking gain from the default */
-	g_pll.tracking_g = 27;
+	// g_pll.tracking_g = 27;
 	midi1_pll_init(&g_pll, 12000, mid_meas->clock_freq(meas));
 
 	/*
@@ -193,7 +192,7 @@ void midi1_serial_receive_thread(void)
 					midi1_pll_get_interval_us(&g_pll));
 		LOG_DBG("--> measured:[ %d ] pll: [ %d ] <-- ",
 				cntr_sbpm, pll_sbpm);
-		model_set(true, 0, cntr_sbpm, pll_sbpm);
+		model_set(true, 0, cntr_sbpm, pll_sbpm, 0);
 	}
 	return;
 }

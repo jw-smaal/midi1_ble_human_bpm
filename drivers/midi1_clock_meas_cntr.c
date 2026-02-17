@@ -155,8 +155,9 @@ void midi1_clock_meas_cntr_pulse(const struct device *dev)
 	}
 
 	/*
-	 * Let average the BPM over 24 clock's 0xF8 received otherwise
-	 * it goes all over the place
+	 * Let average the BPM over e.g. 24 clock's 0xF8 received otherwise
+	 * it goes all over the place.  This value is configurable via
+	 * Kconfig
 	 */
 	midi1_blockavg_add(&data->midi1_blockavg, interval_ticks);
 
