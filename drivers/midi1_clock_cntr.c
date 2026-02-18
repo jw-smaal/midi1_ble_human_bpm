@@ -61,7 +61,10 @@ static void midi1_debug_gpio_init(void)
 
 /* 
  * This is the ISR/callback
- * TODO: Add option for USB MIDI 'usbd_midi_send()' 
+ * TODO: Add option for USB MIDI 'usbd_midi_send()'
+ * TODO: going for a different approach now using a callback
+ * TODO: function instead for whatever needs to be done when the
+ * TODO: counter ISR is fired.
  */
 static void midi1_cntr_handler(const struct device *actual_counter_dev,
 			       void *midi1_clk_cntr_dev)
@@ -84,6 +87,10 @@ static void midi1_cntr_handler(const struct device *actual_counter_dev,
 	if (cfg->midi1_serial_dev) {
 		midi1_serial_timingclock(cfg->midi1_serial_dev);
 	}
+	/* Call the user provided callback function*/
+	if (data->callback_fn) {
+		data->callback_fn();
+	}
 	return;
 }
 
@@ -95,12 +102,36 @@ uint32_t midi1_clock_cntr_cpu_frequency(const struct device *dev)
 	return counter_get_frequency(cfg->counter_dev);
 }
 
+
+
+
 /*
  * Empty NO OP (noop) callbacks assigned if the caller leaves the callbacks
  * empty.
  */
-static inline void midi1_clock_cntr_noop_cb()
+static inline void midi1_clock_cntr_noop_callback(void)
 {
+	LOG_DBG("midi1_clock_cntr_noop_callback() called");
+	return;
+}
+
+/*
+ * This is optional to allow for additional actions by the user application
+ * without adding too much bloat to the driver.
+ */
+void midi1_clock_cntr_register_callback(const struct device *dev,
+					 void (*callback_fn)(void))
+{
+	[[maybe_unused]] const struct midi1_clock_cntr_config *cfg = dev->config;
+	struct midi1_clock_cntr_data *data = dev->data;
+	
+	if(callback_fn) {
+		data->callback_fn = callback_fn;
+	}
+	else {
+		data->callback_fn = midi1_clock_cntr_noop_callback;
+	}
+	return;
 }
 
 /*
@@ -113,6 +144,8 @@ int midi1_clock_cntr_init(const struct device *dev)
 	
 	data->running_cntr = false;
 	data->sbpm = 12000;
+	/* User needs to assign this after init */
+	data->callback_fn = midi1_clock_cntr_noop_callback;
 	if (!device_is_ready(cfg->counter_dev)) {
 		LOG_ERR("Counter device not ready");
 		return -1;
@@ -314,6 +347,7 @@ static const struct midi1_clock_cntr_api midi1_clock_cntr_driver_api = {
 	.get_interval_us   = midi1_clock_cntr_get_interval_us,
 	.get_interval_tick = midi1_clock_cntr_get_interval_tick,
 	.get_running   = midi1_clock_cntr_get_running,
+	.register_callback = midi1_clock_cntr_register_callback,
 };
 
 #define MIDI1_CLOCK_CNTR_INIT_PRIORITY 80

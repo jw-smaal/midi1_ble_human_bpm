@@ -379,7 +379,7 @@ int main(void)
 	LOG_INF("MIDI1 clock measurement device ready...");
 	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
 	
-	
+	/* My application model */
 	model_init();
 	
 	while (1) {
@@ -398,7 +398,6 @@ int main(void)
 		 * TODO: work in progress
 		 */
 		uint32_t interval = mid_clk->get_interval_us(clk);
-		
 		
 		
 		/* Heart rate does not change that fast put in a delay */

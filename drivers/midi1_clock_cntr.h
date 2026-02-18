@@ -27,6 +27,7 @@ struct midi1_clock_cntr_data {
 	bool running_cntr;
 	uint16_t sbpm;
 	bool count_up_clk;
+	void (*callback_fn)(void);
 };
 
 struct midi1_clock_cntr_api {
@@ -41,6 +42,8 @@ struct midi1_clock_cntr_api {
 	uint32_t (*get_interval_us)(const struct device *dev);
 	uint32_t (*get_interval_tick)(const struct device *dev);
 	bool (*get_running)(const struct device *dev);
+	void (*register_callback)(const struct device *dev,
+				  void (*callback_fn)(void));
 };
 
 /**
@@ -108,13 +111,56 @@ void midi1_clock_cntr_gen_sbpm(const struct device *dev, uint16_t sbpm);
  */
 uint16_t midi1_clock_cntr_get_sbpm(const struct device *dev);
 
-
+/**
+ * @brief Get the current MIDI clock tick interval in microseconds.
+ *
+ * This function returns the duration of a single MIDI clock tick,
+ * expressed in microseconds. The interval is derived from the current
+ * tempo and internal timing configuration.
+ *
+ * @param dev Pointer to the MIDI clock counter device instance.
+ *
+ * @return Tick interval in microseconds.
+ */
 uint32_t midi1_clock_cntr_get_interval_us(const struct device *dev);
 
+/**
+ * @brief Get the current MIDI clock tick interval in device ticks.
+ *
+ * This function returns the duration of a MIDI clock tick expressed in
+ * device-specific timer ticks.
+ *
+ * @param dev Pointer to the MIDI clock counter device instance.
+ *
+ * @return Tick interval in hardware timer ticks.
+ */
 uint32_t midi1_clock_cntr_get_interval_tick(const struct device *dev);
 
+/**
+ * @brief Check whether the MIDI clock counter is currently running.
+ *
+ * This function indicates whether the clock generator is active and
+ * producing MIDI timing pulses.
+ *
+ * @param dev Pointer to the MIDI clock counter device instance.
+ *
+ * @return true if the clock is running, false otherwise.
+ */
 bool midi1_clock_cntr_get_running(const struct device *dev);
 
+/**
+ * @brief Register a callback for MIDI clock tick events.
+ *
+ * Registers a user‑provided callback function that is invoked on each
+ * generated MIDI clock tick. Only one callback may be active at a time;
+ * registering a new one replaces the previous callback.
+ *
+ * @param dev Pointer to the MIDI clock counter device instance.
+ * @param callback_fn Function to call on each MIDI clock tick. Passing
+ *                    NULL disables the callback.
+ */
+void midi1_clock_cntr_register_callback(const struct device *dev,
+					 void (*callback_fn)(void));
 
 #endif /* MIDI1_CLOCK_COUNTER */
 /* EOF */
