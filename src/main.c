@@ -31,6 +31,18 @@
 #include <zephyr/sys/atomic.h>
 #include <zephyr/sys/printk.h>
 
+/*
+ * This is part of the MIDI2 library prj.conf
+ * CONFIG_MIDI2_UMP_STREAM_RESPONDER=y
+ * /zephyr/lib/midi2/ump_stream_responder.h
+ * it gets linked in and is required for the USB MIDI support.
+ */
+#include <sample_usbd.h>
+#include <zephyr/usb/class/usbd_midi2.h>
+#include <ump_stream_responder.h>
+
+
+
 /* Moved to ../drivers */
 #include "midi1_serial.h"
 #include "midi1_clock_cntr.h"
@@ -318,6 +330,59 @@ BT_CONN_CB_DEFINE(conn_callbacks) = {
 	.disconnected = disconnected,
 };
 
+
+
+/* TODO: handler for timing purposes we'll ignore other stuff for now */
+static void on_ump_packet(const struct device *dev, const struct midi_ump ump)
+{
+	switch (UMP_MT(ump)) {
+		case UMP_MT_SYS_RT_COMMON:
+			uint8_t status = UMP_MIDI_STATUS(ump);
+			switch (status) {
+				case RT_TIMING_CLOCK:  /* MIDI Clock */
+					break;
+				default:
+					break;
+			}
+		default:
+			break;
+	}
+}
+
+/**
+ * @brief Light up the LED (if any) when USB-MIDI2.0 is active towards the PC
+ */
+static void on_device_ready(const struct device *dev, const bool ready)
+{
+	LOG_INF("MIDI USBD device ready!");
+}
+
+
+/* rx callback struct for the clock tests we use 'on_ump_packet' */
+static const struct usbd_midi_ops ump_ops = {
+	.rx_packet_cb = on_ump_packet,
+	.ready_cb = on_device_ready,
+};
+
+
+/*
+ * This get's called every 24PQN from the driver.
+ * because it's timing sensitive call anything that runs for
+ * a longer time in a workqueue.
+ */
+void midi1_clock_cntr_callback(void){
+	static uint8_t i;
+	/* 0 --> 23 = 24 pulses */
+	if (i < 23) {
+		i++;
+	}
+	else {
+		LOG_DBG("[P]");
+		i = 0;
+	}
+}
+
+
 int main(void)
 {
 	/*
@@ -366,6 +431,8 @@ int main(void)
 	/* You can either use the pointer to the API or the public interface */
 	const struct midi1_clock_cntr_api *mid_clk = clk->api;
 	mid_clk->gen_sbpm(clk, 12345);
+	/* Optional callback when the clock fires */
+	mid_clk->register_callback(clk, midi1_clock_cntr_callback);
 	
 	
 	/*
@@ -378,6 +445,28 @@ int main(void)
 	}
 	LOG_INF("MIDI1 clock measurement device ready...");
 	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
+	
+	
+	/*
+	 * USBD MIDI2.0
+	 */
+	struct usbd_context *sample_usbd;
+	if (!device_is_ready(midi)) {
+		LOG_ERR("MIDI device not ready");
+		return -1;
+	}
+	usbd_midi_set_ops(midi, &ump_ops);
+	sample_usbd = sample_usbd_init_device(NULL);
+	if (sample_usbd == NULL) {
+		LOG_ERR("Failed to initialize USB device");
+		return -1;
+	}
+	if (usbd_enable(sample_usbd)) {
+		LOG_ERR("Failed to enable device support");
+		return -1;
+	}
+	LOG_INF("USB device support enabled");
+	
 	
 	/* My application model */
 	model_init();

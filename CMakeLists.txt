@@ -13,6 +13,9 @@ FILE(GLOB app_sources src/*.c)
 # Hardware and driver logic
 FILE(GLOB driver_sources drivers/*.c)
 
+# for the USB MIDI sources
+include(common/common.cmake)
+
 target_include_directories(app PRIVATE
 	drivers
 )
