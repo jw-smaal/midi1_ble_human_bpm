@@ -1,6 +1,5 @@
 # Copyright (c) 2023 Nordic Semiconductor ASA
 # SPDX-License-Identifier: Apache-2.0
-
 set(SAMPLE_USBD_DIR common)
 
 target_include_directories(app PRIVATE ${SAMPLE_USBD_DIR})

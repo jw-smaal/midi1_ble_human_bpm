@@ -60,6 +60,11 @@
 LOG_MODULE_REGISTER(midi1_human_clock, CONFIG_LOG_DEFAULT_LEVEL);
 
 
+#define USB_MIDI_DT_NODE DT_NODELABEL(usb_midi)
+static const struct device *const midi = DEVICE_DT_GET(USB_MIDI_DT_NODE);
+
+
+
 static void start_scan(void);
 static struct bt_conn *default_conn;
 static struct bt_uuid_16 discover_uuid = BT_UUID_INIT_16(0);
