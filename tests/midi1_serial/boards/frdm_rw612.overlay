@@ -1,0 +1,45 @@
+/**
+ * Device tree overlay created for the FRDM_RW612 development kit
+ * adjusted the pinmux so that we can use it for MIDI out and in.
+ * @author Jan-Willem Smaal <usenet@gispen.org>
+ * @date 20241223
+ * updated in 20260206
+ * license SPDX-License-Identifier: Apache-2.0
+ */
+ 
+/* 
+ * Configured with the MIDI BAUD rate of 31250 
+ * This is the USART on the MIDI arduino shield. 
+ * GPIO 8 and 9. 
+ */
+&flexcomm1 {
+	compatible = "nxp,lpc-usart";
+	status = "okay";
+	current-speed = <31250>;
+	pinctrl-0 = <&pinmux_flexcomm1_usart>;
+	pinctrl-names = "default";
+};
+
+/* 
+ * We want to set flexcomm1 to USART instead of the default. 
+ * this is why we need to set the pinmux here. 
+ */
+&pinctrl {
+	pinmux_flexcomm1_usart: pinmux_flexcomm1_usart {
+		group0 {
+			pinmux = <IO_MUX_FC1_USART_DATA>;
+			slew-rate = "normal";
+		};
+	};
+};
+
+/ {
+	/* MIDI1.0 serial USART driver, set the uart baud to 31250. */
+	midi0: midi0 {
+		status = "okay";
+		compatible = "midi1_serial";
+		uart = <&flexcomm1>;
+	};
+};
+
+/* EOF */

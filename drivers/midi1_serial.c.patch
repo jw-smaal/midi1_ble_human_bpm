@@ -1,0 +1,42 @@
+--- a/midi1_serial.c
++++ b/midi1_serial.c
+@@ -613,14 +613,6 @@
+ 				} else if (common == C_PITCH_WHEEL) {
+ 					data->cb.pitchwheel(chan,
+ 					                    data->midi_c2,
+ 					                    data->midi_c3);
+ 					return;
+-			} else if (common == C_PROGRAM_CHANGE) {
+-				data->cb.program_change(chan, data->midi_c2);
+-				return;
+ 				} else if (common == C_POLYPHONIC_AFTERTOUCH) {
+ 					data->cb.poly_aftertouch(chan,
+ 					                         data->midi_c2,
+ 					                         data->midi_c3);
+ 					return;
+-			} else if (common == C_CHANNEL_AFTERTOUCH) {
+-				data->cb.channel_aftertouch(chan,
+-				                            data->midi_c2);
+-				return;
+ 				} else if (common == C_CONTROL_CHANGE) {
+
+@@ -648,9 +640,12 @@
+ 				} else if (data->running_status_rx < 0xE0) {
+-					/* All 1 byte commands */
+-					data->midi_c2 = c;
+-					/*
+-					 * TODO: !! Process callback/delegate
+-					 * for two bytes command.
+-					 */
++					/* 1 data byte commands:
++					 * Program Change, Channel Aftertouch */
++					uint8_t common = data->running_status_rx
++						& SYSTEM_COMMON_MASK;
++					uint8_t chan = data->running_status_rx
++						& ~(SYSTEM_COMMON_MASK);
++					if (common == C_PROGRAM_CHANGE) {
++						data->cb.program_change(chan, c);
++					} else if (common == C_CHANNEL_AFTERTOUCH) {
++						data->cb.channel_aftertouch(chan, c);
++					}
+ 					return;

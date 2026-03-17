@@ -462,7 +462,8 @@ int main(void)
 
                 k_sleep(K_MSEC(4000));
 
-#if defined(CONFIG_MIDI_TEST_PATTERN)
+#define MIDI_TEST_PATTERN 1
+#if MIDI_TEST_PATTERN
                 /* Test Pattern Logic */
                 for (uint8_t value = 0; value < 16; value++) {
                         mid_api->control_change(midi_serial, CH16, 1, value);
