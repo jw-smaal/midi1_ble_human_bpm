@@ -27,7 +27,6 @@
 /* Defined in midi1_receive_thread */
 extern struct k_msgq midi_msgq;
 
-
 /* Global pll */
 #include "midi1_pll.h"
 extern struct midi1_pll_data g_pll;

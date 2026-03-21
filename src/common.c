@@ -11,5 +11,3 @@
 
 /* Global pll */
 struct midi1_pll_data g_pll;
-
-

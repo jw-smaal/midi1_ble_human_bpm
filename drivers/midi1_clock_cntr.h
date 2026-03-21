@@ -15,7 +15,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-
 struct midi1_clock_cntr_config {
 	const struct device *counter_dev;
 	const struct device *midi1_serial_dev;
@@ -33,8 +32,8 @@ struct midi1_clock_cntr_data {
 struct midi1_clock_cntr_api {
 	uint32_t (*cpu_frequency)(const struct device *dev);
 	void (*start)(const struct device *dev, uint32_t interval_us);
-	void (*ticks_start)(const struct device * dev, uint32_t ticks);
-	void (*update_ticks)(const struct device * dev, uint32_t new_ticks);
+	void (*ticks_start)(const struct device *dev, uint32_t ticks);
+	void (*update_ticks)(const struct device *dev, uint32_t new_ticks);
 	void (*stop)(const struct device *dev);
 	void (*gen)(const struct device *dev, uint16_t sbpm);
 	void (*gen_sbpm)(const struct device *dev, uint16_t sbpm);
@@ -42,8 +41,7 @@ struct midi1_clock_cntr_api {
 	uint32_t (*get_interval_us)(const struct device *dev);
 	uint32_t (*get_interval_tick)(const struct device *dev);
 	bool (*get_running)(const struct device *dev);
-	void (*register_callback)(const struct device *dev,
-				  void (*callback_fn)(void));
+	void (*register_callback)(const struct device *dev, void (*callback_fn)(void));
 };
 
 /**
@@ -81,8 +79,7 @@ void midi1_clock_cntr_ticks_start(const struct device *dev, uint32_t ticks);
  *
  * @note this is not supported on PIT0 channel 0 on NXP
  */
-void midi1_clock_cntr_update_ticks(const struct device *dev,
-				   uint32_t new_ticks);
+void midi1_clock_cntr_update_ticks(const struct device *dev, uint32_t new_ticks);
 
 /**
  * @brief Stop the clock
@@ -159,8 +156,7 @@ bool midi1_clock_cntr_get_running(const struct device *dev);
  * @param callback_fn Function to call on each MIDI clock tick. Passing
  *                    NULL disables the callback.
  */
-void midi1_clock_cntr_register_callback(const struct device *dev,
-					 void (*callback_fn)(void));
+void midi1_clock_cntr_register_callback(const struct device *dev, void (*callback_fn)(void));
 
 #endif /* MIDI1_CLOCK_COUNTER */
 /* EOF */

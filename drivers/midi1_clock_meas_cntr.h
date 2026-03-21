@@ -127,5 +127,5 @@ uint32_t midi1_clock_meas_cntr_clock_freq(const struct device *dev);
  */
 uint32_t midi1_clock_meas_cntr_interval_us(const struct device *dev);
 
-#endif                          /* MIDI1_CLOCK_MEAS_CNTR_H */
+#endif /* MIDI1_CLOCK_MEAS_CNTR_H */
 /* EOF */

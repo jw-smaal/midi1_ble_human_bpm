@@ -16,7 +16,7 @@
 #include <zephyr/logging/log.h>
 
 #include "midi1.h"
-#include "midi1_clock_meas_cntr.h" 
+#include "midi1_clock_meas_cntr.h"
 #include "midi1_blockavg.h"
 LOG_MODULE_REGISTER(midi1_clock_meas_cntr, CONFIG_LOG_DEFAULT_LEVEL);
 
@@ -62,17 +62,17 @@ int midi1_clock_meas_cntr_init(const struct device *dev)
 {
 	const struct midi1_clock_meas_cntr_config *cfg = dev->config;
 	struct midi1_clock_meas_cntr_data *data = dev->data;
-	
+
 	data->last_ts_ticks = 0;
 	data->scaled_bpm = 12000;
 	data->last_interval_ticks = 0;
 	data->valid = false;
 	data->clock_freq = 0;
 	data->count_up = false;
-	
+
 	/* Init a instance of a block average */
 	midi1_blockavg_init(&data->midi1_blockavg);
-	
+
 	/* Counter device is already assigned during kernel init */
 
 	if (!device_is_ready(cfg->counter_dev)) {
@@ -89,7 +89,7 @@ int midi1_clock_meas_cntr_init(const struct device *dev)
 
 	/* Do this once and then let it run free .. */
 	const struct counter_top_cfg top_cfg = {
-		.ticks = 0xFFFFFFFF,    /* full 32‑bit range */
+		.ticks = 0xFFFFFFFF, /* full 32‑bit range */
 		.callback = (void *)midi1_clock_meas_callback,
 		//.callback = 0,
 		.user_data = 0,
@@ -113,7 +113,7 @@ void midi1_clock_meas_cntr_pulse(const struct device *dev)
 {
 	const struct midi1_clock_meas_cntr_config *cfg = dev->config;
 	struct midi1_clock_meas_cntr_data *data = dev->data;
-	  
+
 	uint32_t now_ticks = midi1_clock_meas_now_ticks(dev);
 	uint32_t interval_ticks = 0;
 
@@ -163,8 +163,7 @@ void midi1_clock_meas_cntr_pulse(const struct device *dev)
 
 	if (midi1_blockavg_count(&data->midi1_blockavg) == MIDI1_BLOCKAVG_SIZE) {
 		uint32_t avg_ticks = midi1_blockavg_average(&data->midi1_blockavg);
-		uint32_t interval_us =
-		    counter_ticks_to_us(cfg->counter_dev, avg_ticks);
+		uint32_t interval_us = counter_ticks_to_us(cfg->counter_dev, avg_ticks);
 		data->scaled_bpm = MIDI1_SCALED_BPM_NUMERATOR / interval_us;
 		data->valid = true;
 	}
@@ -206,8 +205,7 @@ uint32_t midi1_clock_meas_cntr_clock_freq(const struct device *dev)
 uint32_t midi1_clock_meas_cntr_interval_us(const struct device *dev)
 {
 	const struct midi1_clock_meas_cntr_config *cfg = dev->config;
-	return counter_ticks_to_us(cfg->counter_dev,
-	                           midi1_clock_meas_cntr_interval_ticks(dev));
+	return counter_ticks_to_us(cfg->counter_dev, midi1_clock_meas_cntr_interval_ticks(dev));
 }
 
 /* Zephyr device driver API link to our actual implementation */
@@ -221,24 +219,19 @@ static const struct midi1_clock_meas_cntr_api midi1_clock_meas_cntr_driver_api =
 	.interval_us = midi1_clock_meas_cntr_interval_us,
 };
 
-
 #define MIDI1_CLOCK_MEAS_CNTR_INIT_PRIORITY 85
 
 #define DT_DRV_COMPAT midi1_clock_meas_cntr
 
-#define MIDI1_CLOCK_MEAS_CNTR_DEFINE(inst)                                    \
-static struct midi1_clock_meas_cntr_data midi1_clock_meas_cntr_data_##inst;             \
-static const struct midi1_clock_meas_cntr_config midi1_clock_meas_cntr_config_##inst = {\
-.counter_dev = DEVICE_DT_GET(DT_INST_PROP(inst, counter)),                    \
-};                                                                            \
-DEVICE_DT_INST_DEFINE(inst,                                                   \
-midi1_clock_meas_cntr_init,                                                   \
-NULL,                                                                         \
-&midi1_clock_meas_cntr_data_##inst,                                           \
-&midi1_clock_meas_cntr_config_##inst,                                         \
-POST_KERNEL,                                                                  \
-MIDI1_CLOCK_MEAS_CNTR_INIT_PRIORITY,                                          \
-&midi1_clock_meas_cntr_driver_api);
+#define MIDI1_CLOCK_MEAS_CNTR_DEFINE(inst)                                                         \
+	static struct midi1_clock_meas_cntr_data midi1_clock_meas_cntr_data_##inst;                \
+	static const struct midi1_clock_meas_cntr_config midi1_clock_meas_cntr_config_##inst = {   \
+		.counter_dev = DEVICE_DT_GET(DT_INST_PROP(inst, counter)),                         \
+	};                                                                                         \
+	DEVICE_DT_INST_DEFINE(                                                                     \
+		inst, midi1_clock_meas_cntr_init, NULL, &midi1_clock_meas_cntr_data_##inst,        \
+		&midi1_clock_meas_cntr_config_##inst, POST_KERNEL,                                 \
+		MIDI1_CLOCK_MEAS_CNTR_INIT_PRIORITY, &midi1_clock_meas_cntr_driver_api);
 
 DT_INST_FOREACH_STATUS_OKAY(MIDI1_CLOCK_MEAS_CNTR_DEFINE)
 

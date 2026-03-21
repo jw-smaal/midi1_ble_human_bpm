@@ -14,19 +14,18 @@
  * Low‑pass filter strength keep it high... sudden tempo changes
  * should be followed though.
  */
-#define MIDI1_PLL_FILTER_K  CONFIG_PLL_FILTER_K
+#define MIDI1_PLL_FILTER_K CONFIG_PLL_FILTER_K
 
 /*
  * Correction gain keep it low we want to move towards the value
  * but not overshoot
  */
-#define MIDI1_PLL_GAIN_G    CONFIG_PLL_FILTER_GAIN
+#define MIDI1_PLL_GAIN_G CONFIG_PLL_FILTER_GAIN
 
 /*
  * Slow loop tracking gain.
  */
 #define MIDI1_PLL_TRACK_GAIN CONFIG_PLL_TRACK_GAIN
-
 
 struct midi1_pll_data {
 	/*
@@ -35,7 +34,7 @@ struct midi1_pll_data {
 	uint8_t k;
 	uint8_t gain;
 	uint8_t tracking_g;
-	
+
 	/*
 	 * Measurement data:
 	 */
@@ -52,17 +51,14 @@ struct midi1_pll_data {
  *
  * @param sbpm  Scaled BPM value (e.g. 12000 for 120.00 BPM)
  */
-void midi1_pll_init(struct midi1_pll_data *data,
-			  uint16_t sbpm,
-			  uint32_t clock_freq);
+void midi1_pll_init(struct midi1_pll_data *data, uint16_t sbpm, uint32_t clock_freq);
 
 /**
  * @brief Process an incoming MIDI clock tick interval.
  *
  * @param measured_interval_ticks interval in ticks.
  */
-void midi1_pll_process_interval(struct midi1_pll_data *data,
-				      uint32_t measured_interval_ticks);
+void midi1_pll_process_interval(struct midi1_pll_data *data, uint32_t measured_interval_ticks);
 
 /**
  * @brief Get the current PLL‑corrected 24pqn interval in microseconds.
@@ -78,4 +74,4 @@ uint32_t midi1_pll_get_interval_us(struct midi1_pll_data *data);
  */
 int32_t midi1_pll_get_interval_ticks(struct midi1_pll_data *data);
 
-#endif                  /* MIDI1_PLL_H */
+#endif /* MIDI1_PLL_H */

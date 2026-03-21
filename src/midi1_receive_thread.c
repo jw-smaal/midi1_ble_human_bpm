@@ -48,9 +48,8 @@ K_MSGQ_DEFINE(midi_msgq, MIDI_LINE_MAX, MIDI_MSGQ_MAX, 4);
 void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
 	char line[MIDI_LINE_MAX];
-	snprintf(line, sizeof(line), "CH: %d -> Note   on: %s %03d %03d",
-	         channel + 1,
-	         noteToTextWithOctave(note, false), note, velocity);
+	snprintf(line, sizeof(line), "CH: %d -> Note   on: %s %03d %03d", channel + 1,
+		 noteToTextWithOctave(note, false), note, velocity);
 	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
@@ -59,9 +58,8 @@ void note_on_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 {
 	char line[MIDI_LINE_MAX];
-	snprintf(line, sizeof(line), "CH: %d -> Note  off: %s %03d %03d",
-	         channel + 1,
-	         noteToTextWithOctave(note, false), note, velocity);
+	snprintf(line, sizeof(line), "CH: %d -> Note  off: %s %03d %03d", channel + 1,
+		 noteToTextWithOctave(note, false), note, velocity);
 	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
@@ -70,10 +68,9 @@ void note_off_handler(uint8_t channel, uint8_t note, uint8_t velocity)
 void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
 {
 	/* 14 bit value for the pitch wheel  */
-	int16_t pwheel = (int16_t) ((msb << 7) | lsb) - PITCHWHEEL_CENTER;
+	int16_t pwheel = (int16_t)((msb << 7) | lsb) - PITCHWHEEL_CENTER;
 	char line[MIDI_LINE_MAX];
-	snprintf(line, sizeof(line), "CH: %d -> Pitchwheel: %d",
-	         channel + 1, pwheel);
+	snprintf(line, sizeof(line), "CH: %d -> Pitchwheel: %d", channel + 1, pwheel);
 	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
@@ -82,8 +79,7 @@ void pitchwheel_handler(uint8_t channel, uint8_t lsb, uint8_t msb)
 void control_change_handler(uint8_t channel, uint8_t controller, uint8_t value)
 {
 	char line[MIDI_LINE_MAX];
-	snprintf(line, sizeof(line), "CH: %d -> CC: %d value: %d",
-	         channel + 1, controller, value);
+	snprintf(line, sizeof(line), "CH: %d -> CC: %d value: %d", channel + 1, controller, value);
 	LOG_DBG("%s", line);
 	k_msgq_put(&midi_msgq, line, K_NO_WAIT);
 	return;
@@ -98,8 +94,7 @@ void realtime_handler(uint8_t msg)
 	 */
 	if (msg == RT_TIMING_CLOCK) {
 
-		const struct device *meas = DEVICE_DT_GET(
-			DT_NODELABEL(midi1_clock_meas_cntr));
+		const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
 		if (!device_is_ready(meas)) {
 			LOG_INF("MIDI1 clock measurement device not ready");
 			return;
@@ -110,8 +105,7 @@ void realtime_handler(uint8_t msg)
 		 * Feed the PLL with this measurement we just did
 		 * 'g_pll' is defined in 'common.c'
 		 */
-		midi1_pll_process_interval(&g_pll,
-					   mid_meas->interval_ticks(meas));
+		midi1_pll_process_interval(&g_pll, mid_meas->interval_ticks(meas));
 	}
 	/* We ignore other RT messages for now */
 	return;
@@ -137,7 +131,6 @@ void sysex_stop_handler(void)
 
 /* ---------------------------- THREADS ------------------------------------ */
 
-
 /**
  * Serial receive parser thread - receiveparser keeps reading data
  * filled by the ISR and then calls callbacks.
@@ -151,16 +144,15 @@ void midi1_serial_receive_thread(void)
 		return;
 	}
 	const struct midi1_serial_api *mid = midi->api;
-	
+
 	/* We need to find the clock frequency used by the counter. */
-	const struct device *meas = DEVICE_DT_GET(
-					DT_NODELABEL(midi1_clock_meas_cntr));
+	const struct device *meas = DEVICE_DT_GET(DT_NODELABEL(midi1_clock_meas_cntr));
 	if (!device_is_ready(meas)) {
 		LOG_INF("MIDI1 clock measurement device not ready");
 		return;
 	}
 	const struct midi1_clock_meas_cntr_api *mid_meas = meas->api;
-	
+
 	/* Lets init the PLL but adjust the tracking gain from the default */
 	// g_pll.tracking_g = 27;
 	midi1_pll_init(&g_pll, 12000, mid_meas->clock_freq(meas));
@@ -170,28 +162,23 @@ void midi1_serial_receive_thread(void)
 	 * left null are not used in the callbacks.
 	 * e.g. right now the aftertouch is not handled.
 	 */
-	struct midi1_serial_callbacks my_cb = {
-		.note_on = note_on_handler,
-		.note_off = note_off_handler,
-		.control_change = control_change_handler,
-		.pitchwheel = pitchwheel_handler,
-		.sysex_start = sysex_start_handler,
-		.sysex_data = sysex_data_handler,
-		.sysex_stop = sysex_stop_handler,
-		.realtime = realtime_handler
-	};
+	struct midi1_serial_callbacks my_cb = {.note_on = note_on_handler,
+					       .note_off = note_off_handler,
+					       .control_change = control_change_handler,
+					       .pitchwheel = pitchwheel_handler,
+					       .sysex_start = sysex_start_handler,
+					       .sysex_data = sysex_data_handler,
+					       .sysex_stop = sysex_stop_handler,
+					       .realtime = realtime_handler};
 	/* midi1_serial_register_callbacks(midi, &my_cb); */
 	mid->register_callbacks(midi, &my_cb);
-
 
 	while (1) {
 		/* As this call is blocking no need to sleep in between */
 		mid->receiveparser(midi);
 		uint16_t cntr_sbpm = mid_meas->get_sbpm(meas);
-		uint16_t pll_sbpm = pqn24_to_sbpm(
-					midi1_pll_get_interval_us(&g_pll));
-		LOG_DBG("--> measured:[ %d ] pll: [ %d ] <-- ",
-				cntr_sbpm, pll_sbpm);
+		uint16_t pll_sbpm = pqn24_to_sbpm(midi1_pll_get_interval_us(&g_pll));
+		LOG_DBG("--> measured:[ %d ] pll: [ %d ] <-- ", cntr_sbpm, pll_sbpm);
 		model_set(true, 0, cntr_sbpm, pll_sbpm, 0);
 	}
 	return;
@@ -201,7 +188,7 @@ void midi1_serial_receive_thread(void)
  * Make sure the MIDI receive thread gets enough cycles.
  * that is why i set to 1
  */
-K_THREAD_DEFINE(midi1_serial_receive_tid, 4096,
-                midi1_serial_receive_thread, NULL, NULL, NULL, 1, 0, 0);
+K_THREAD_DEFINE(midi1_serial_receive_tid, 4096, midi1_serial_receive_thread, NULL, NULL, NULL, 1, 0,
+		0);
 
 /* EOF */

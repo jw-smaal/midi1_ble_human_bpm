@@ -26,15 +26,15 @@
 /*  Define's specific for the MIDI protocol */
 #define PITCHWHEEL_CENTER 8192
 /* 16384 is the 2^14 which is the maximum pitch bend value */
-#define PITCHWHEEL_MAX 16384
+#define PITCHWHEEL_MAX    16384
 
 /* MIDI channel/mode masks */
-#define CHANNEL_VOICE_MASK      0x80    /*  Bit 7 == 1 */
-#define CHANNEL_MODE_MASK       0xB0
-#define SYSTEM_EXCLUSIVE_MASK   0xF0
-#define SYSTEM_REALTIME_MASK    0XF8
-#define SYSTEM_COMMON_MASK      0XF0
-#define MIDI_DATA               0x7F    /*  Bit 7 == 0 */
+#define CHANNEL_VOICE_MASK    0x80 /*  Bit 7 == 1 */
+#define CHANNEL_MODE_MASK     0xB0
+#define SYSTEM_EXCLUSIVE_MASK 0xF0
+#define SYSTEM_REALTIME_MASK  0XF8
+#define SYSTEM_COMMON_MASK    0XF0
+#define MIDI_DATA             0x7F /*  Bit 7 == 0 */
 
 /* System messages */
 enum midi_sysex {
@@ -206,8 +206,7 @@ struct midi_ump midi1_note_off(uint8_t channel, uint8_t key, uint8_t velocity);
  * @param val controller value
  * @return midi_ump universal MIDI1.0 packet
  */
-struct midi_ump midi1_controlchange(uint8_t channel,
-                                    uint8_t controller, uint8_t val);
+struct midi_ump midi1_controlchange(uint8_t channel, uint8_t controller, uint8_t val);
 
 /**
  * @brief create a MIDI1.0 UMP message for a PITCH WHEEL
@@ -297,8 +296,8 @@ struct midi_ump midi1_reset(void);
  * to compile in single precision math.
  *
  */
-#define BPM_SCALE      100u
-#define US_PER_SECOND  1000000u
+#define BPM_SCALE     100u
+#define US_PER_SECOND 1000000u
 
 /**
  * @brief returns the interval in microseconds (us) for a given sbpm

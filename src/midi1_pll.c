@@ -13,16 +13,20 @@
 #include "midi1.h"
 
 /* TODO: implement the BPM setting as it's ignored now.  */
-void midi1_pll_init(struct midi1_pll_data *data,
-			  uint16_t sbpm,
-			  uint32_t clock_freq)
+void midi1_pll_init(struct midi1_pll_data *data, uint16_t sbpm, uint32_t clock_freq)
 {
 	/* If the user has not provided settings take the defaults */
-	if (!data->k ) data->k 	= MIDI1_PLL_FILTER_K;
-	if (!data->gain) data->gain = MIDI1_PLL_GAIN_G;
-	if (!data->tracking_g) data->tracking_g = MIDI1_PLL_TRACK_GAIN;
+	if (!data->k) {
+		data->k = MIDI1_PLL_FILTER_K;
+	}
+	if (!data->gain) {
+		data->gain = MIDI1_PLL_GAIN_G;
+	}
+	if (!data->tracking_g) {
+		data->tracking_g = MIDI1_PLL_TRACK_GAIN;
+	}
 	data->clock_freq = clock_freq;
-	
+
 	data->nominal_interval_ticks = sbpm_to_ticks(sbpm, clock_freq);
 	/* Initialize internal PLL state */
 	data->internal_interval_ticks = (int32_t)data->nominal_interval_ticks;
@@ -33,8 +37,7 @@ void midi1_pll_init(struct midi1_pll_data *data,
 /*
  * measured_interval_ticks is in hardware clock ticks of course
  */
-void midi1_pll_process_interval(struct midi1_pll_data *data,
-				      uint32_t measured_interval_ticks)
+void midi1_pll_process_interval(struct midi1_pll_data *data, uint32_t measured_interval_ticks)
 {
 	if (measured_interval_ticks == 0U) {
 		/* ignore bogus measurement */
@@ -42,17 +45,14 @@ void midi1_pll_process_interval(struct midi1_pll_data *data,
 	}
 
 	/* 1. Interval error: measured - internal */
-	int32_t error =
-	    (int32_t) measured_interval_ticks - data->internal_interval_ticks;
+	int32_t error = (int32_t)measured_interval_ticks - data->internal_interval_ticks;
 
 	/* 2. Low-pass filter the error */
-	data->filtered_error +=
-	    (error - data->filtered_error) / data->k;
+	data->filtered_error += (error - data->filtered_error) / data->k;
 
 	/* 3. Adjust internal interval around nominal */
 	data->internal_interval_ticks =
-		(int32_t) data->nominal_interval_ticks +
-		data->filtered_error / data->gain;
+		(int32_t)data->nominal_interval_ticks + data->filtered_error / data->gain;
 
 	/*
 	 * Slow tracking: adapt nominal interval towards long-term average.
@@ -60,8 +60,7 @@ void midi1_pll_process_interval(struct midi1_pll_data *data,
 	 * Add a small fraction of the filtered error each pulse.
 	 * This makes nominal_interval_ticks follow real BPM over time.
 	 */
-	data->nominal_interval_ticks +=
-	    (int32_t) data->filtered_error / data->tracking_g;
+	data->nominal_interval_ticks += (int32_t)data->filtered_error / data->tracking_g;
 	return;
 }
 
@@ -76,8 +75,6 @@ uint32_t midi1_pll_get_interval_us(struct midi1_pll_data *data)
 		return 0;
 	}
 
-	uint64_t us =
-	    ((uint64_t) data->nominal_interval_ticks * 1000000ULL) /
-	data->clock_freq;
-	return (uint32_t) us;
+	uint64_t us = ((uint64_t)data->nominal_interval_ticks * 1000000ULL) / data->clock_freq;
+	return (uint32_t)us;
 }

@@ -1,13 +1,13 @@
 /**
- * @file note.h 
- * 
- * @brief generic MIDI and harmony related functions 
- * implemented in support of embedded systems in c. 
+ * @file note.h
+ *
+ * @brief generic MIDI and harmony related functions
+ * implemented in support of embedded systems in c.
  * tested on Zephyr RTOS.
  * TODO: update from C++ coding style back to C.
  * TODO: e.g. 'noteToText' should be renamed to 'note_to_text'
  *
- * @author Jan-Willem Smaal <usenet@gispen.org> 
+ * @author Jan-Willem Smaal <usenet@gispen.org>
  * @updated 20241224
  * @license SPDX-License-Identifier: Apache-2.0
  */
@@ -67,5 +67,5 @@ float noteToFreq(uint8_t midinote);
  */
 uint8_t freqToMidiNote(float freq);
 
-#endif                          /* NOTE_H */
+#endif /* NOTE_H */
 /* EOF */

@@ -2,7 +2,7 @@
  * @file midi_freq_table.h
  * Precomputed frequencies for MIDI notes 0–127
  * used for embedded systems.  Based op A4 = 440Hz.
- * used by "note.h  / note.c" for the noteToFreq() function 
+ * used by "note.h  / note.c" for the noteToFreq() function
  *
  * @author Jan-Willem Smaal <usenet@gispen.org>
  * license SPDX-License-Identifier: Apache-2.0
@@ -20,4 +20,4 @@ static const float midi_freq_table[128] = {
 #include "midi_freq_table.inc"
 };
 
-#endif                          /* MIDI_FREQ_TABLE_H */
+#endif /* MIDI_FREQ_TABLE_H */

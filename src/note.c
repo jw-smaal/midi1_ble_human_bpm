@@ -1,11 +1,11 @@
-/** 
- * @file note.c 
- * 
- * @brief Generic MIDI and harmony related functions 
- * implemented in support of embedded systems in c. 
- * tested on Zephyr RTOS. 
- * 
- * @author Jan-Willem Smaal <usenet@gispen.org> 
+/**
+ * @file note.c
+ *
+ * @brief Generic MIDI and harmony related functions
+ * implemented in support of embedded systems in c.
+ * tested on Zephyr RTOS.
+ *
+ * @author Jan-Willem Smaal <usenet@gispen.org>
  * @updated 20241224
  * @license SPDX-License-Identifier: Apache-2.0
  */
@@ -13,14 +13,13 @@
 
 /*
  * Return the note with the octave included.
- * not thread safe. 
+ * not thread safe.
  */
 const char *noteToTextWithOctave(uint8_t midinote, bool flats)
 {
 	static char notestring[5];
-	snprintf(notestring,
-	         sizeof(notestring),
-	         "%s%d", noteToText(midinote, flats), noteToOct(midinote));
+	snprintf(notestring, sizeof(notestring), "%s%d", noteToText(midinote, flats),
+		 noteToOct(midinote));
 	return &notestring[0];
 }
 
@@ -29,14 +28,10 @@ const char *noteToText(uint8_t midinote, bool flats)
 {
 	int octave = noteToOct(midinote);
 	uint8_t note = midinote - ((octave + 2) * 12);
-	static const char *flatNotes[] =
-	    { "C ", "Db", "D ", "Eb", "E ", "F ", "Gb", "G ", "Ab", "A ", "Bb",
-		"B "
-	};
-	static const char *sharpNotes[] =
-	    { "C ", "C#", "D ", "D#", "E ", "F ", "F#", "G ", "G#", "A ", "A#",
-		"B "
-	};
+	static const char *flatNotes[] = {"C ", "Db", "D ", "Eb", "E ", "F ",
+					  "Gb", "G ", "Ab", "A ", "Bb", "B "};
+	static const char *sharpNotes[] = {"C ", "C#", "D ", "D#", "E ", "F ",
+					   "F#", "G ", "G#", "A ", "A#", "B "};
 
 	const char *noteString;
 	if (flats) {
@@ -49,7 +44,7 @@ const char *noteToText(uint8_t midinote, bool flats)
 }
 
 /*
- * This function converts a MIDI note to an octave number 
+ * This function converts a MIDI note to an octave number
  */
 int noteToOct(uint8_t midinote)
 {
@@ -73,7 +68,7 @@ float noteToFreqCustomA4(uint8_t midinote, int base_a4_note_freq)
  * pow() match functions I use a precomputed lookup table.
  * A=440Hz is a given then.
  * TODO: possibly create multiple tables with some
- * TODO: variation in pitch of A4.  Flash size tradeoff.   
+ * TODO: variation in pitch of A4.  Flash size tradeoff.
  */
 #include "midi_freq_table.h"
 float noteToFreq(uint8_t midinote)
@@ -86,11 +81,13 @@ uint8_t freqToMidiNote(float freq)
 {
 	/* Fast inverse using log2f */
 	float n = 69.0f + 12.0f * log2f(freq / BASE_A4_NOTE_FREQ);
-	if (n < 0)
+	if (n < 0) {
 		n = 0;
-	if (n > 127)
+	}
+	if (n > 127) {
 		n = 127;
-	return (uint8_t) (n + 0.5f);
+	}
+	return (uint8_t)(n + 0.5f);
 }
 #endif
 
