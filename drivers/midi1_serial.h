@@ -26,10 +26,10 @@
 #ifndef MIDI1_SERIAL_H
 #define MIDI1_SERIAL_H
 
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
-#include <string.h>
 #include <stdint.h>
+#include <string.h>
+#include <zephyr/device.h>
+#include <zephyr/kernel.h>
 
 /* MIDI1.0 definitions by Jan-Willem Smaal */
 #include "midi1.h"
@@ -62,12 +62,21 @@ struct midi1_serial_callbacks {
 	void (*channel_aftertouch)(uint8_t channel, uint8_t pressure);
 	void (*poly_aftertouch)(uint8_t channel, uint8_t note, uint8_t pressure);
 
-	/* Callback for the realtime messages (clock, stop etc..) */
+	/*
+	 * Callback for the realtime messages (clock, stop etc..)
+	 */
 	void (*realtime)(uint8_t msg);
 
 	/*
-	 * Sysex callback data be aware this can be a lot of data e.g. sample
-	 * dumps
+	 * System Common callbacks
+	 */
+	void (*mtc_quarter_frame)(uint8_t data);
+	void (*song_position)(uint16_t pos);
+	void (*song_select)(uint8_t song);
+	void (*tune_request)(void);
+
+	/*
+	 * Sysex callback data be aware this can be a lot of data
 	 */
 	void (*sysex_start)(void);
 	void (*sysex_data)(uint8_t data);
@@ -75,23 +84,37 @@ struct midi1_serial_callbacks {
 };
 
 struct midi1_serial_data {
-	/* RX parser state */
+	/*
+	 * RX parser state
+	 */
 	uint8_t running_status_rx;
 	uint8_t third_byte_flag;
 	uint8_t midi_c2;
 	uint8_t midi_c3;
 
-	/* TX running status */
+	/*
+	 * TX running status
+	 */
 	uint8_t running_status_tx;
 	uint8_t running_status_tx_count;
 	uint32_t last_status_tx_time;
 
-	/* Message queue filled by the ISR routine */
+	/* 
+	 * Tx mutex for the uart 
+	 */
+	struct k_mutex tx_lock;
+
+	/*
+	 * Message queue filled by the ISR routine
+	 */
 	struct k_msgq msgq;
 	uint8_t msgq_buffer[MSGQ_SIZE];
 
-	/* Set when processing sysex data */
+	/*
+	 * Set when processing sysex data
+	 */
 	bool in_sysex;
+
 
 	/*
 	 * Must be filled by the application after init.
@@ -103,28 +126,46 @@ struct midi1_serial_data {
  * @note the zephyr API for our MIDI1.0 serial driver
  */
 struct midi1_serial_api {
-	/* -- == Receive  == --   */
+	/*
+	 * -- == Receive  == --
+	 */
 	int (*register_callbacks)(const struct device *dev, struct midi1_serial_callbacks *cb);
 	void (*receiveparser)(const struct device *dev);
-	/* -- == Transmit == --   */
+	/*
+	 * -- == Transmit == --
+	 */
 
-	/* Channel mode messages */
+	/*
+	 * Channel mode messages
+	 */
 	void (*note_on)(const struct device *dev, uint8_t channel, uint8_t key, uint8_t velocity);
 	void (*note_off)(const struct device *dev, uint8_t channel, uint8_t key, uint8_t velocity);
 	void (*control_change)(const struct device *dev, uint8_t channel, uint8_t controller,
 			       uint8_t val);
 	void (*channelaftertouch)(const struct device *dev, uint8_t channel, uint8_t val);
+	void (*program_change)(const struct device *dev, uint8_t channel, uint8_t number);
+	void (*polyaftertouch)(const struct device *dev, uint8_t channel, uint8_t key, uint8_t val);
 	void (*modwheel)(const struct device *dev, uint8_t channel, uint16_t val);
 	void (*pitchwheel)(const struct device *dev, uint8_t channel, uint16_t val);
-	/* System common */
+	/*
+	 * System common
+	 */
+	void (*mtc_quarter_frame)(const struct device *dev, uint8_t data);
+	void (*song_position)(const struct device *dev, uint16_t pos);
+	void (*song_select)(const struct device *dev, uint8_t song);
+	void (*tune_request)(const struct device *dev);
 	void (*timingclock)(const struct device *dev);
 	void (*start)(const struct device *dev);
-	/* NOTE: Is actually 'continue' but that a reserved word in C :-) */
+	/*
+	 * NOTE: Is actually 'continue' but that a reserved word in C :-)
+	 */
 	void (*continu)(const struct device *dev);
 	void (*stop)(const struct device *dev);
 	void (*active_sensing)(const struct device *dev);
 	void (*reset)(const struct device *dev);
-	/* System exclusive */
+	/*
+	 * System exclusive
+	 */
 	void (*sysex_start)(const struct device *dev);
 	void (*sysex_char)(const struct device *dev, uint8_t c);
 	void (*sysex_data_bulk)(const struct device *dev, const uint8_t *data, uint32_t len);
@@ -206,6 +247,24 @@ void midi1_serial_control_change(const struct device *dev, uint8_t channel, uint
 void midi1_serial_channelaftertouch(const struct device *dev, uint8_t channel, uint8_t val);
 
 /**
+ * @brief send a Program Change tx event via the instance inst
+ * @param *dev MIDI1.0 device serial instance.
+ * @param channel MIDI channel 0 == CH1
+ * @param number Program number (0-127)
+ */
+void midi1_serial_program_change(const struct device *dev, uint8_t channel, uint8_t number);
+
+/**
+ * @brief send a Polyphonic Aftertouch tx event via the instance inst
+ * @param *dev MIDI1.0 device serial instance.
+ * @param channel MIDI channel 0 == CH1
+ * @param key MIDI key number
+ * @param val pressure value
+ */
+void midi1_serial_polyaftertouch(const struct device *dev, uint8_t channel, uint8_t key,
+				 uint8_t val);
+
+/**
  * @brief send a ModWheel (MSB and LSB) via the instance inst
  *
  * @note Modulation Wheel both LSB and MSB
@@ -237,8 +296,35 @@ void midi1_serial_pitchwheel(const struct device *dev, uint8_t channel, uint16_t
  */
 
 /**
+ * @brief send MIDI1 MTC Quarter Frame
+ * @param *dev MIDI1.0 device serial instance.
+ * @param data MTC payload (7-bit)
+ */
+void midi1_serial_mtc_quarter_frame(const struct device *dev, uint8_t data);
+
+/**
+ * @brief send MIDI1 Song Position Pointer
+ * @param *dev MIDI1.0 device serial instance.
+ * @param pos 14-bit position value
+ */
+void midi1_serial_song_position(const struct device *dev, uint16_t pos);
+
+/**
+ * @brief send MIDI1 Song Select
+ * @param *dev MIDI1.0 device serial instance.
+ * @param song Song number (0-127)
+ */
+void midi1_serial_song_select(const struct device *dev, uint8_t song);
+
+/**
+ * @brief send MIDI1 Tune Request
+ * @param *dev MIDI1.0 device serial instance.
+ */
+void midi1_serial_tune_request(const struct device *dev);
+
+/**
  * @brief send MIDI1 timing clock
- *
+...
  * @param *dev MIDI1.0 device serial instance.
  */
 void midi1_serial_timingclock(const struct device *dev);
