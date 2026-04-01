@@ -41,11 +41,11 @@
 #include <zephyr/usb/class/usbd_midi2.h>
 #include <ump_stream_responder.h>
 
-/* Moved to ../drivers */
-#include "midi1_serial.h"
-#include "midi1_clock_cntr.h"
-#include "midi1_clock_meas_cntr.h"
-#include "midi1_blockavg.h"
+/* This is the MIDI module at: https://github.com/jw-smaal/zephyr-midi1  */
+#include <zephyr/drivers/midi/midi1_serial.h>
+#include <zephyr/drivers/midi/midi1_clock_cntr.h>
+#include <zephyr/drivers/midi/midi1_clock_meas_cntr.h>
+#include <zephyr/drivers/midi/midi1_blockavg.h>
 
 /* Some MIDI1 helpers that are not drivers */
 #include "midi1_pll.h"

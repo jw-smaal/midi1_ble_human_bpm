@@ -20,9 +20,9 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(midi1_receive_thread, CONFIG_LOG_DEFAULT_LEVEL);
 
-/* Moved to ../drivers */
-#include "midi1_serial.h"
-#include "midi1_clock_meas_cntr.h"
+/* The zephyr module from: https://github.com/jw-smaal/zephyr-midi1  */
+#include <zephyr/drivers/midi/midi1_serial.h>
+#include <zephyr/drivers/midi/midi1_clock_meas_cntr.h>
 
 /* Some helpers for MIDI  */
 #include "midi1_pll.h"

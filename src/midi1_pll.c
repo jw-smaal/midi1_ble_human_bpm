@@ -9,8 +9,13 @@
 
 /* MIDI1.0 clock Phase Locked Loop (PLL) */
 #include "midi1_pll.h"
-/* sbpm_to_us_interval() is defined here 1*/
-#include "midi1.h"
+
+/* 
+ * sbpm_to_us_interval() is defined here 
+ * in this zephyr module
+ * https://github.com/jw-smaal/zephyr-midi1
+ */
+#include <zephyr/drivers/midi/midi1.h>
 
 /* TODO: implement the BPM setting as it's ignored now.  */
 void midi1_pll_init(struct midi1_pll_data *data, uint16_t sbpm, uint32_t clock_freq)

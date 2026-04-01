@@ -1,5 +1,4 @@
 source "Kconfig.zephyr"
-rsource "drivers/Kconfig"
 rsource "src/Kconfig"
 
 # Copyright (c) 2024 Titouan Christophe

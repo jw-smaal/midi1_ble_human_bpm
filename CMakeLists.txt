@@ -13,15 +13,9 @@ include(common/common.cmake)
 # Application logic
 FILE(GLOB app_sources src/*.c)
 
-# Hardware and driver logic
-FILE(GLOB driver_sources drivers/*.c)
-
-target_include_directories(app PRIVATE
-	drivers
-)
+target_include_directories(app PRIVATE)
 
 target_sources(app PRIVATE
-	${app_sources}
-	${driver_sources})
+	${app_sources})
 
 zephyr_library_include_directories(${ZEPHYR_BASE}/samples/bluetooth)

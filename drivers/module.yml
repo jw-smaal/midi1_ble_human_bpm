@@ -1,3 +1,0 @@
-name: midi1
-build:
-  cmake: .

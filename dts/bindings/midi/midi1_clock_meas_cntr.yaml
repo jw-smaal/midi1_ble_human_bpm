@@ -1,8 +1,0 @@
-description: MIDI1 clock measurement system
-compatible: "midi1_clock_meas_cntr"
-
-properties:
-  counter:
-    type: phandle
-    required: true
-    description: counter device

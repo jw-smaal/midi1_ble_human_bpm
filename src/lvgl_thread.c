@@ -19,7 +19,9 @@
 #include <string.h>
 #include <zephyr/logging/log.h>
 
-#include "midi1.h"
+/* Zephyr MIDI module from: https://github.com/jw-smaal/zephyr-midi1 */
+#include <zephyr/drivers/midi/midi1.h>
+
 #include "common.h"
 #include "model.h"
 
@@ -196,17 +198,20 @@ void lvgl_thread(void)
 		int processed = 0;
 		uint32_t sleep_ms = 0;
 		char buf[MIDI_LINE_MAX];
+		char bpm_str[16];
 		model_get(&mod);
 
 		snprintf(buf, sizeof(buf), "BLE hr: %d BPM", mod.hr_bpm);
 		LOG_DBG("%s", buf);
 		lv_label_set_text(label_bpm, buf);
 
-		snprintf(buf, sizeof(buf), "Meas: %s", sbpm_to_str(mod.meas_sbpm));
+		sbpm_to_str(mod.meas_sbpm, bpm_str, sizeof(bpm_str));
+		snprintf(buf, sizeof(buf), "Meas: %s", bpm_str);
 		LOG_DBG("%s", buf);
 		lv_label_set_text(label_meas, buf);
-
-		snprintf(buf, sizeof(buf), "PLL: %s", sbpm_to_str(mod.pll_sbpm));
+	
+		sbpm_to_str(mod.pll_sbpm, bpm_str, sizeof(bpm_str));
+		snprintf(buf, sizeof(buf), "PLL: %s", bpm_str);
 		LOG_DBG("%s", buf);
 		lv_label_set_text(label_pll, buf);
 
